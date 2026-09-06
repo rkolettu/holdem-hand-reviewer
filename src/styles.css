@@ -35,3 +35,9 @@ select {
     #082321 100%
   );
 }
+
+/* Dim the workspace behind the dialog without changing its layout. */
+[data-slot='dialog-overlay'] {
+  background-color: rgb(2 6 23 / 0.7);
+  backdrop-filter: blur(5px);
+}

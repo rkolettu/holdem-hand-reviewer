@@ -1,3 +1,7 @@
+import { useRef, useState, type MouseEvent } from 'react';
+import { CardSlot } from './components/CardSlot';
+import { CardPicker } from './components/CardPicker';
+import { type Card, type ActiveSlot, sameCard } from './cards';
 import {
   ArrowUpRight,
   ChartNoAxesCombined,
@@ -11,16 +15,6 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-
-function CardSlot({ label }: { label: string }) {
-  return (
-    <div
-      role="img"
-      aria-label={`${label}: empty card slot`}
-      className="aspect-[5/7] w-full rounded-lg border border-dashed border-white/35 bg-white/[0.035] shadow-[inset_0_1px_0_rgb(255_255_255/0.025)] sm:rounded-xl"
-    />
-  );
-}
 
 function NumberField({ id, label }: { id: string; label: string }) {
   return (
@@ -89,6 +83,48 @@ function Metric({
 }
 
 export default function App() {
+  const [holeCards, setHoleCards] = useState<(Card | null)[]>([null, null]);
+  const [communityCards, setCommunityCards] = useState<(Card | null)[]>([
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
+  const [activeSlot, setActiveSlot] = useState<ActiveSlot | null>(null);
+  const slotButton = useRef<HTMLButtonElement | null>(null);
+  const usedCards = [...holeCards, ...communityCards].filter(
+    (card): card is Card => card !== null,
+  );
+  const selectedCard = activeSlot
+    ? (activeSlot.group === 'hole' ? holeCards : communityCards)[
+        activeSlot.index
+      ]
+    : null;
+
+  function updateSlot(slot: ActiveSlot, card: Card | null) {
+    const setCards = slot.group === 'hole' ? setHoleCards : setCommunityCards;
+    setCards((cards) =>
+      cards.map((previous, index) => (index === slot.index ? card : previous)),
+    );
+  }
+
+  function openSlot(slot: ActiveSlot, event: MouseEvent<HTMLButtonElement>) {
+    slotButton.current = event.currentTarget;
+    setActiveSlot(slot);
+  }
+
+  function selectCard(card: Card) {
+    if (
+      !activeSlot ||
+      (usedCards.some((used) => sameCard(card, used)) &&
+        !sameCard(card, selectedCard))
+    )
+      return;
+    updateSlot(activeSlot, card);
+    setActiveSlot(null);
+  }
+
   return (
     <div className="min-h-dvh bg-[#0c141a] font-sans text-slate-100 antialiased lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
       <main className="flex min-w-0 flex-col lg:min-h-dvh">
@@ -141,7 +177,9 @@ export default function App() {
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs text-emerald-100/60">
               <span className="size-1.5 rounded-full bg-[#d6bc79]" />
-              Empty table
+              {usedCards.length
+                ? `${usedCards.length}/7 cards selected`
+                : 'Empty table'}
             </div>
           </div>
           <div className="flex flex-1 flex-col items-center justify-center pb-2 pt-12 sm:pt-14">
@@ -156,11 +194,86 @@ export default function App() {
                 Community cards
               </h2>
               <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                <CardSlot label="Flop card 1" />
-                <CardSlot label="Flop card 2" />
-                <CardSlot label="Flop card 3" />
-                <CardSlot label="Turn" />
-                <CardSlot label="River" />
+                <CardSlot
+                  label="Flop card 1"
+                  card={communityCards[0]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'community', index: 0, label: 'Flop card 1' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'community', index: 0, label: 'Flop card 1' },
+                      null,
+                    )
+                  }
+                />
+                <CardSlot
+                  label="Flop card 2"
+                  card={communityCards[1]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'community', index: 1, label: 'Flop card 2' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'community', index: 1, label: 'Flop card 2' },
+                      null,
+                    )
+                  }
+                />
+                <CardSlot
+                  label="Flop card 3"
+                  card={communityCards[2]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'community', index: 2, label: 'Flop card 3' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'community', index: 2, label: 'Flop card 3' },
+                      null,
+                    )
+                  }
+                />
+                <CardSlot
+                  label="Turn"
+                  card={communityCards[3]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'community', index: 3, label: 'Turn' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'community', index: 3, label: 'Turn' },
+                      null,
+                    )
+                  }
+                />
+                <CardSlot
+                  label="River"
+                  card={communityCards[4]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'community', index: 4, label: 'River' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'community', index: 4, label: 'River' },
+                      null,
+                    )
+                  }
+                />
               </div>
               <div
                 aria-hidden="true"
@@ -182,8 +295,38 @@ export default function App() {
                 Your hole cards
               </h2>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <CardSlot label="Hole card 1" />
-                <CardSlot label="Hole card 2" />
+                <CardSlot
+                  label="Hole card 1"
+                  card={holeCards[0]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'hole', index: 0, label: 'Hole card 1' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'hole', index: 0, label: 'Hole card 1' },
+                      null,
+                    )
+                  }
+                />
+                <CardSlot
+                  label="Hole card 2"
+                  card={holeCards[1]}
+                  onOpen={(event) =>
+                    openSlot(
+                      { group: 'hole', index: 1, label: 'Hole card 2' },
+                      event,
+                    )
+                  }
+                  onClear={() =>
+                    updateSlot(
+                      { group: 'hole', index: 1, label: 'Hole card 2' },
+                      null,
+                    )
+                  }
+                />
               </div>
             </section>
           </div>
@@ -309,6 +452,14 @@ export default function App() {
           Study the hand. Sharpen your game.
         </p>
       </aside>
+      <CardPicker
+        activeSlot={activeSlot}
+        selectedCard={selectedCard}
+        usedCards={usedCards}
+        returnFocus={slotButton}
+        onClose={() => setActiveSlot(null)}
+        onSelect={selectCard}
+      />
     </div>
   );
 }
