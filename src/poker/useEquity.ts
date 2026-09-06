@@ -1,20 +1,34 @@
 import { useEffect, useState } from 'react';
 import type { EquityInput, EquityResult } from './equity';
+import { resolveContinuationSelection } from './continuationContext';
+
 export type EquityState =
   | { status: 'idle' | 'loading' }
   | { status: 'ready'; result: EquityResult }
   | { status: 'error'; message: string };
+
 export function useEquity(input: EquityInput | null): EquityState {
   const [finished, setFinished] = useState<{
     input: EquityInput;
     state: EquityState;
   } | null>(null);
+
   useEffect(() => {
     if (!input) return;
     let active = true;
     let worker: Worker | undefined;
     const timer = setTimeout(() => {
       try {
+        const resolvedOpponentCombos = resolveContinuationSelection(
+          input.opponentCombos,
+          input.communityCards,
+          [...input.holeCards, ...input.communityCards],
+        );
+        const workerInput: EquityInput =
+          resolvedOpponentCombos === input.opponentCombos
+            ? input
+            : { ...input, opponentCombos: resolvedOpponentCombos };
+
         worker = new Worker(new URL('./equity.worker.ts', import.meta.url), {
           type: 'module',
         });
@@ -39,7 +53,7 @@ export function useEquity(input: EquityInput | null): EquityState {
             });
           worker?.terminate();
         };
-        worker.postMessage(input);
+        worker.postMessage(workerInput);
       } catch {
         if (active)
           setFinished({
@@ -57,6 +71,7 @@ export function useEquity(input: EquityInput | null): EquityState {
       worker?.terminate();
     };
   }, [input]);
+
   if (!input) return { status: 'idle' };
   return finished?.input === input ? finished.state : { status: 'loading' };
 }
