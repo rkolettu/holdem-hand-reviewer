@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["vite/client", "node"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": [
+    "src",
+    "components/ui/input.tsx",
+    "components/ui/native-select.tsx",
+    "lib/utils.ts",
+    "vite.config.ts"
+  ]
+}

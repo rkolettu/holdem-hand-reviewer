@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Avenir Next', 'Segoe UI', Arial, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, monospace;
+  --color-input: #334155;
+  --color-ring: #34d399;
+  --color-muted-foreground: #94a3b8;
+  --color-primary: #d6bc79;
+  --color-primary-foreground: #0c141a;
+}
+
+:root {
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+::selection {
+  background: #d6bc7940;
+  color: #fff;
+}
+.felt {
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    #185448 0%,
+    #103e35 42%,
+    #092a26 76%,
+    #082321 100%
+  );
+}
