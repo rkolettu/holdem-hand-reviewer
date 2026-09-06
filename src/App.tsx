@@ -1,5 +1,6 @@
-import { useRef, useState, useMemo, type MouseEvent } from 'react';
+import { useMemo, useRef, useState, type MouseEvent } from 'react';
 import { AnalysisPanel } from './components/AnalysisPanel';
+import { PracticeMode } from './components/PracticeMode';
 import { useEquity } from './poker/useEquity';
 import { validateScenario } from './poker/scenario';
 import {
@@ -9,12 +10,16 @@ import {
   type Position,
   type Playstyle,
 } from './poker/ranges';
+import {
+  continuingCombinations,
+  validateRaiseInputs,
+} from './poker/decision';
 import type { EquityInput } from './poker/equity';
 import { Button } from '@/components/ui/button';
 import { CardSlot } from './components/CardSlot';
 import { CardPicker } from './components/CardPicker';
 import { type Card, type ActiveSlot, sameCard } from './cards';
-import { Diamond, Layers2, Spade } from 'lucide-react';
+import { Diamond, Gamepad2, Layers2, Spade } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   NativeSelect,
@@ -26,11 +31,19 @@ function NumberField({
   label,
   value,
   onChange,
+  unit = 'BB',
+  min = 0,
+  max,
+  placeholder = '0',
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  unit?: string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
 }) {
   return (
     <div className="min-w-0 space-y-2.5">
@@ -45,17 +58,17 @@ function NumberField({
           onChange={(event) => onChange(event.target.value)}
           type="number"
           inputMode="decimal"
-          aria-describedby="amount-unit"
-          min="0"
+          min={min}
+          max={max}
           step="any"
-          placeholder="0"
+          placeholder={placeholder}
           className="h-12 rounded-xl border-white/10 bg-white/[0.035] px-4 pr-12 text-base text-slate-100 shadow-none placeholder:text-slate-500 focus-visible:border-emerald-400/60 focus-visible:ring-2 focus-visible:ring-emerald-400/20 md:text-base"
         />
         <span
           aria-hidden="true"
           className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-500"
         >
-          BB
+          {unit}
         </span>
       </div>
     </div>
@@ -63,6 +76,7 @@ function NumberField({
 }
 
 export default function App() {
+  const [mode, setMode] = useState<'review' | 'practice'>('review');
   const [holeCards, setHoleCards] = useState<(Card | null)[]>([null, null]);
   const [communityCards, setCommunityCards] = useState<(Card | null)[]>([
     null,
@@ -77,6 +91,9 @@ export default function App() {
   const [potSize, setPotSize] = useState('');
   const [callAmount, setCallAmount] = useState('');
   const [stackSize, setStackSize] = useState('');
+  const [raiseTo, setRaiseTo] = useState('');
+  const [foldToRaise, setFoldToRaise] = useState('35');
+
   const range = useMemo(
     () => generateOpponentRange(opponentPosition, opponentPlaystyle),
     [opponentPosition, opponentPlaystyle],
@@ -88,6 +105,13 @@ export default function App() {
     callAmount,
     stackSize,
   );
+  const raiseValidation = validateRaiseInputs(
+    scenario.call,
+    stackSize,
+    raiseTo,
+    foldToRaise,
+  );
+
   const equityInput = useMemo<EquityInput | null>(
     () =>
       scenario.ready
@@ -102,6 +126,39 @@ export default function App() {
     [holeCards, communityCards, range, scenario.ready],
   );
   const calculation = useEquity(equityInput);
+
+  const continueCombos = useMemo(
+    () =>
+      scenario.ready && raiseValidation.ready
+        ? continuingCombinations(range, raiseValidation.foldEquity)
+        : [],
+    [range, raiseValidation.foldEquity, raiseValidation.ready, scenario.ready],
+  );
+  const raiseEquityInput = useMemo<EquityInput | null>(
+    () =>
+      scenario.ready &&
+      raiseValidation.ready &&
+      raiseValidation.foldEquity < 1 &&
+      continueCombos.length
+        ? {
+            holeCards: holeCards as [Card, Card],
+            communityCards: communityCards.filter(
+              (card): card is Card => card !== null,
+            ),
+            opponentCombos: continueCombos,
+          }
+        : null,
+    [
+      holeCards,
+      communityCards,
+      continueCombos,
+      scenario.ready,
+      raiseValidation.ready,
+      raiseValidation.foldEquity,
+    ],
+  );
+  const raiseCalculation = useEquity(raiseEquityInput);
+
   const [activeSlot, setActiveSlot] = useState<ActiveSlot | null>(null);
   const slotButton = useRef<HTMLButtonElement | null>(null);
   const usedCards = [...holeCards, ...communityCards].filter(
@@ -136,6 +193,26 @@ export default function App() {
     setActiveSlot(null);
   }
 
+  const callNumber = Number(callAmount);
+  const potNumber = Number(potSize);
+  const canPresetRaise =
+    callAmount.trim() !== '' &&
+    potSize.trim() !== '' &&
+    Number.isFinite(callNumber) &&
+    callNumber > 0 &&
+    Number.isFinite(potNumber);
+  const raisePresets = canPresetRaise
+    ? [
+        { label: 'Min', value: callNumber * 2 },
+        { label: '3× bet', value: callNumber * 3 },
+        { label: 'Pot', value: potNumber + callNumber * 2 },
+      ]
+    : [];
+
+  if (mode === 'practice') {
+    return <PracticeMode onExit={() => setMode('review')} />;
+  }
+
   return (
     <div className="min-h-dvh bg-[#0c141a] font-sans text-slate-100 antialiased lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
       <main className="flex min-w-0 flex-col lg:min-h-dvh">
@@ -153,13 +230,28 @@ export default function App() {
                 The Felt<span className="text-[#d6bc79]">.</span>
               </p>
               <p className="text-xs text-slate-400">
-                Texas Hold’em · Hand Reviewer
+                Texas Hold’em · Decision Lab
               </p>
             </div>
           </div>
-          <span className="rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-slate-400">
-            No-limit Hold’em
-          </span>
+          <div className="flex rounded-xl border border-white/10 bg-white/[0.025] p-1">
+            <button
+              type="button"
+              aria-pressed="true"
+              className="rounded-lg bg-white/[0.08] px-3 py-1.5 text-xs font-medium text-slate-100"
+            >
+              Review
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('practice')}
+              aria-pressed="false"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-slate-200"
+            >
+              <Gamepad2 aria-hidden="true" className="size-3.5" />
+              Practice
+            </button>
+          </div>
         </header>
 
         <section
@@ -177,13 +269,13 @@ export default function App() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-200/60">
-                Your workspace
+                Hand review
               </p>
               <h1
                 id="table-heading"
                 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl"
               >
-                Review a hand
+                Compare the decision tree
               </h1>
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs text-emerald-100/60">
@@ -193,6 +285,7 @@ export default function App() {
                 : 'Empty table'}
             </div>
           </div>
+
           <div className="flex flex-1 flex-col items-center justify-center pb-2 pt-12 sm:pt-14">
             <section
               aria-labelledby="community-heading"
@@ -295,6 +388,7 @@ export default function App() {
                 <span>River</span>
               </div>
             </section>
+
             <section
               aria-labelledby="hole-heading"
               className="mt-9 w-[min(36%,204px)] sm:mt-10"
@@ -341,6 +435,7 @@ export default function App() {
               </div>
             </section>
           </div>
+
           <fieldset className="mt-8 border-t border-white/10 pt-5">
             <legend className="px-2 text-sm font-medium text-emerald-100/80">
               Opponent Playstyle
@@ -354,7 +449,11 @@ export default function App() {
                   aria-label={style}
                   aria-pressed={opponentPlaystyle === style}
                   onClick={() => setOpponentPlaystyle(style)}
-                  className={`h-auto min-h-16 cursor-pointer flex-col gap-1 whitespace-normal rounded-xl border px-2 py-3 text-sm transition-colors focus-visible:ring-[#d6bc79] ${opponentPlaystyle === style ? 'border-[#d6bc79]/70 bg-[#d6bc79]/15 text-[#f1dba3] hover:bg-[#d6bc79]/20' : 'border-white/10 bg-black/10 text-emerald-100/70 hover:border-white/25 hover:bg-white/5'}`}
+                  className={`h-auto min-h-16 cursor-pointer flex-col gap-1 whitespace-normal rounded-xl border px-2 py-3 text-sm transition-colors focus-visible:ring-[#d6bc79] ${
+                    opponentPlaystyle === style
+                      ? 'border-[#d6bc79]/70 bg-[#d6bc79]/15 text-[#f1dba3] hover:bg-[#d6bc79]/20'
+                      : 'border-white/10 bg-black/10 text-emerald-100/70 hover:border-white/25 hover:bg-white/5'
+                  }`}
                 >
                   <span>{style}</span>
                   <span className="text-xs font-normal opacity-70">
@@ -366,7 +465,7 @@ export default function App() {
           </fieldset>
           <div className="mt-5 flex items-center justify-center gap-2 text-xs text-emerald-100/50">
             <Diamond aria-hidden="true" className="size-3 shrink-0" />
-            Every decision starts with the right information.
+            Change assumptions and watch the preferred action move.
           </div>
         </section>
 
@@ -380,13 +479,12 @@ export default function App() {
               className="flex items-center gap-2 text-sm font-medium text-slate-200"
             >
               <Layers2 aria-hidden="true" className="size-4 text-slate-500" />
-              Hand details
+              Decision inputs
             </h2>
-            <p id="amount-unit" className="text-xs text-slate-500">
-              Amounts in big blinds (BB)
-            </p>
+            <p className="text-xs text-slate-500">Amounts in big blinds (BB)</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 xl:grid-cols-4">
+
+          <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             <NumberField
               id="stack-size"
               label="Stack Size"
@@ -401,7 +499,7 @@ export default function App() {
             />
             <NumberField
               id="call-amount"
-              label="Call Amount"
+              label="Bet / Call Amount"
               value={callAmount}
               onChange={setCallAmount}
             />
@@ -421,12 +519,8 @@ export default function App() {
                 }
                 className="w-full [&_select]:h-12 [&_select]:rounded-xl [&_select]:border-white/10 [&_select]:bg-white/[0.035] [&_select]:pl-4 [&_select]:text-base [&_select]:text-slate-300 [&_select]:focus-visible:border-emerald-400/60 [&_select]:focus-visible:ring-emerald-400/20"
               >
-                <NativeSelectOption value="UTG">
-                  Under the Gun
-                </NativeSelectOption>
-                <NativeSelectOption value="MP">
-                  Middle Position
-                </NativeSelectOption>
+                <NativeSelectOption value="UTG">Under the Gun</NativeSelectOption>
+                <NativeSelectOption value="MP">Middle Position</NativeSelectOption>
                 <NativeSelectOption value="HJ">Hijack</NativeSelectOption>
                 <NativeSelectOption value="CO">Cutoff</NativeSelectOption>
                 <NativeSelectOption value="BTN">Button</NativeSelectOption>
@@ -434,16 +528,60 @@ export default function App() {
                 <NativeSelectOption value="BB">Big Blind</NativeSelectOption>
               </NativeSelect>
             </div>
+            <NumberField
+              id="raise-to"
+              label="Raise To"
+              value={raiseTo}
+              onChange={setRaiseTo}
+              placeholder="Optional"
+            />
+            <NumberField
+              id="fold-to-raise"
+              label="Villain Folds to Raise"
+              value={foldToRaise}
+              onChange={setFoldToRaise}
+              unit="%"
+              max={100}
+            />
           </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs text-slate-500">Raise presets:</span>
+            {raisePresets.length ? (
+              raisePresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => setRaiseTo(preset.value.toFixed(1))}
+                  className="rounded-lg border border-white/[0.08] bg-white/[0.025] px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-slate-200"
+                >
+                  {preset.label} · {preset.value.toFixed(1)} BB
+                </button>
+              ))
+            ) : (
+              <span className="text-xs text-slate-600">
+                Enter the pot and bet to unlock sizing shortcuts.
+              </span>
+            )}
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-slate-500">
+            Raise EV uses your fold-to-raise assumption. If villain calls, the
+            engine recalculates equity against the strongest continuing portion
+            of the selected range. Minimum raise assumes a single bet on this
+            street.
+          </p>
         </section>
       </main>
 
       <AnalysisPanel
         range={range}
         calculation={calculation}
+        raiseCalculation={raiseCalculation}
         validation={scenario}
+        raiseValidation={raiseValidation}
         pot={scenario.pot}
         call={scenario.call}
+        continueComboCount={continueCombos.length}
       />
       <CardPicker
         activeSlot={activeSlot}
