@@ -56,6 +56,15 @@ function pct(value: number) {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function cleanExplanation(value: string) {
+  return value
+    .replace(/\*\*/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^[-*]\s+/gm, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .trim();
+}
+
 export async function POST(request: Request) {
   const apiKey =
     process.env.GROQ_API_KEY ?? process.env.Hand_Reviewer_Groq_Key;
@@ -107,13 +116,13 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         model: MODEL,
-        temperature: 0.2,
-        max_completion_tokens: 320,
+        temperature: 0.15,
+        max_completion_tokens: 900,
         messages: [
           {
             role: 'system',
             content:
-              'You are a concise Texas Hold’em study assistant. Explain the supplied deterministic hand-analysis output; do not recalculate, alter, or invent any numbers. Treat the opponent range as an explicit assumption, not a GTO solution or population fact. Keep the answer under 120 words. Start with a one-sentence takeaway, then give exactly 3 short bullets explaining the equity-versus-pot-odds relationship, expected value, and the main model limitation. Do not give bankroll, staking, or real-money gambling advice.',
+              'You are a concise Texas Hold’em study coach. Explain only the deterministic results supplied by the app. Never recalculate any number, never show a formula or equation, and never invent win rates, loss rates, outs, implied odds, future action, or hand-strength claims that were not supplied. Treat the opponent range as an assumption, not a GTO solution or population fact. Write one polished paragraph of 45 to 70 words. Start directly with Call, Fold, Check, or Break-even as appropriate. Mention the supplied equity, pot odds, and call EV naturally, then end with one short limitation of the model. Use plain text only: no Markdown, no bullets, no headings, no asterisks.',
           },
           {
             role: 'user',
@@ -132,14 +141,16 @@ export async function POST(request: Request) {
     }
 
     const data = (await groqResponse.json()) as GroqResponse;
-    const explanation = data.choices?.[0]?.message?.content?.trim();
+    const rawExplanation = data.choices?.[0]?.message?.content?.trim();
 
-    if (!explanation) {
+    if (!rawExplanation) {
       return Response.json(
         { error: 'The AI provider returned an empty explanation.' },
         { status: 502 },
       );
     }
+
+    const explanation = cleanExplanation(rawExplanation);
 
     return Response.json(
       { explanation },
