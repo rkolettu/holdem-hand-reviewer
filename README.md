@@ -1,13 +1,24 @@
 # The Felt — Texas Hold’em Hand Reviewer
 
-React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compatible [PHE hand evaluator](https://github.com/thlorenz/phe).
+A responsive heads-up poker study tool: select your cards, model an opponent, and review showdown equity, pot odds, and call EV.
+
+Built with React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compatible [PHE hand evaluator](https://github.com/thlorenz/phe).
+
+## Features
+
+- Interactive card picker with duplicate prevention, replacement, and clearing.
+- Position-adjusted opponent ranges for four playstyles.
+- Exact postflop equity and repeatable preflop estimates.
+- Live pot odds, EV, and math-based call/fold/check verdicts.
+- Background calculations with cancellation and input validation.
+- Responsive green felt and dark analysis panel.
 
 ## Run
 
 Requires Node.js 22.13 or later.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
@@ -42,7 +53,7 @@ PHE evaluates the best five-card hand from seven cards. The engine enumerates ev
 - Call EV: `equity * (pot + call) - call`
 - Equivalent EV: `equity * pot - (1 - equity) * call`
 
-This corrects the contradictory initial EV expression, which counted the prospective call again in the win branch. With a 75 BB pot and a 25 BB call, break-even equity is 25%; 30% equity gives +5 BB EV and 20% gives −5 BB EV.
+The call is subtracted once from the expected share of the final pot. With a 75 BB pot and a 25 BB call, break-even equity is 25%; 30% equity gives +5 BB EV and 20% gives −5 BB EV.
 
 Verdicts compare unrounded equity with pot odds: green for a positive call EV, red for a negative call EV, neutral at break-even, and check when no call is needed. Figures are rounded only for display. Model assumes full equity realization at showdown, no rake, no future betting, and no side pots. A positive estimated EV is not a guarantee of profit.
 
@@ -57,3 +68,7 @@ Verdicts compare unrounded equity with pot odds: green for a positive call EV, r
 - Tests cover known hands, ties, blockers, exact runout counts, deterministic sampling, combo accounting, finances, input gating, stale-worker cancellation, live UI and card picker behavior.
 
 The Sites scaffold's bundled UI library remains available for future work. This app runs directly on Vite as a client-rendered React application.
+
+## Deployment
+
+`npm run build` writes a standalone static app to `dist/`. Serve that directory from a static host at the site root. `npm start` previews the production build locally. No API key or backend service is required. `.openai/hosting.json` is optional Sites deployment metadata for this checkout.
