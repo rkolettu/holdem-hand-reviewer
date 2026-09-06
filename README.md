@@ -1,8 +1,8 @@
 # The Felt — Texas Hold’em Hand Reviewer
 
-A responsive heads-up poker study tool: select your cards, model an opponent, and review showdown equity, pot odds, and call EV.
+A responsive heads-up poker study tool: select your cards, model an opponent, and review showdown equity, pot odds, call EV, and an optional AI explanation of the calculated decision.
 
-Built with React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compatible [PHE hand evaluator](https://github.com/thlorenz/phe).
+Built with React 19, Vite 8, TypeScript, Tailwind CSS 4, the browser-compatible [PHE hand evaluator](https://github.com/thlorenz/phe), and an optional Groq-powered explanation endpoint.
 
 ## Features
 
@@ -10,6 +10,7 @@ Built with React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compati
 - Position-adjusted opponent ranges for four playstyles.
 - Exact postflop equity and repeatable preflop estimates.
 - Live pot odds, EV, and math-based call/fold/check verdicts.
+- Optional AI explanation that receives the finished math and explains it without replacing the calculator.
 - Background calculations with cancellation and input validation.
 - Responsive green felt and dark analysis panel.
 
@@ -28,14 +29,27 @@ npm run build
 npm start
 ```
 
+The calculator itself is fully client-side and does not require an API key. The AI explanation is optional and is served from `api/explain.ts` when deployed on Vercel.
+
+To enable it, create a Groq API key and add this environment variable to the deployment:
+
+```text
+GROQ_API_KEY=your_key_here
+```
+
+The key is read only by the serverless function and must never be exposed through a `VITE_` environment variable or committed to the repository. If the key is absent or the provider is unavailable, the poker calculator continues to work normally.
+
+The endpoint currently uses `openai/gpt-oss-20b` through Groq. It sends only the calculator output needed for an explanation: opponent profile/range width, equity, pot odds, EV, pot, call amount, and whether the equity result was exact or estimated. The deterministic poker engine remains the source of truth.
+
 ## Review a hand
 
 1. Select your two hole cards; click a filled slot to replace it or its X to clear it.
 2. Leave the board empty for preflop, or complete the flop before adding the turn and river.
 3. Select Opponent Position and Opponent Playstyle.
 4. Enter Pot Size and Call Amount in big blinds. Stack Size is optional; if supplied, the call cannot exceed it.
+5. Once the math is ready, choose **Explain this decision** for a short AI explanation of the calculated result.
 
-The sidebar updates automatically. Clearing required inputs hides the previous analysis. New card/range inputs terminate old calculations and ignore stale responses. Card selections and inputs are kept in React state and reset on reload.
+The sidebar updates automatically. Clearing required inputs hides the previous analysis. New card/range inputs terminate old calculations and ignore stale responses. AI explanations are also cleared whenever the underlying analysis changes. Card selections and inputs are kept in React state and reset on reload.
 
 ## Opponent model
 
@@ -57,18 +71,27 @@ The call is subtracted once from the expected share of the final pot. With a 75 
 
 Verdicts compare unrounded equity with pot odds: green for a positive call EV, red for a negative call EV, neutral at break-even, and check when no call is needed. Figures are rounded only for display. Model assumes full equity realization at showdown, no rake, no future betting, and no side pots. A positive estimated EV is not a guarantee of profit.
 
+## AI explanation layer
+
+`api/explain.ts` calls Groq’s OpenAI-compatible chat-completions endpoint with a small, fixed payload derived from the completed calculation. The model is instructed to preserve every supplied number, explain rather than recalculate, treat the villain range as an assumption, and keep the answer concise.
+
+The browser never receives `GROQ_API_KEY`. The UI makes a same-origin request to `/api/explain`, and the serverless function calls Groq. This keeps the secret off the client and makes the AI feature optional rather than a dependency of the core calculator.
+
 ## Source
 
 - `src/App.tsx`: card/input/opponent state and workspace.
 - `src/components/CardPicker.tsx`, `CardSlot.tsx`: card selection and clearing.
-- `src/components/AnalysisPanel.tsx`: live metrics, verdict, model explanation.
+- `src/components/AnalysisPanel.tsx`: live metrics, verdict, model explanation, and optional AI explanation UI.
 - `src/poker/ranges.ts`: range generation and matrix data.
 - `src/poker/equity.ts`, `equity.worker.ts`, `useEquity.ts`: equity computation and asynchronous lifecycle.
 - `src/poker/metrics.ts`, `scenario.ts`: call math and input validation.
+- `api/explain.ts`: server-side Groq integration for concise explanations.
 - Tests cover known hands, ties, blockers, exact runout counts, deterministic sampling, combo accounting, finances, input gating, stale-worker cancellation, live UI and card picker behavior.
 
 The Sites scaffold's bundled UI library remains available for future work. This app runs directly on Vite as a client-rendered React application.
 
 ## Deployment
 
-`npm run build` writes a standalone static app to `dist/`. Serve that directory from a static host at the site root. `npm start` previews the production build locally. No API key or backend service is required. `.openai/hosting.json` is optional Sites deployment metadata for this checkout.
+`npm run build` writes a standalone static app to `dist/`. On Vercel, the top-level `api/explain.ts` file is deployed as a serverless function alongside the static frontend. Add `GROQ_API_KEY` to the Vercel project’s environment variables and redeploy to enable AI explanations.
+
+Without the environment variable, or on a static host that does not run the API function, the core hand reviewer still works; only the optional explanation button will return an unavailable message.
