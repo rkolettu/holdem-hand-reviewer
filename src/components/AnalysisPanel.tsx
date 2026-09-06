@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   ChartNoAxesCombined,
   CircleDot,
   LoaderCircle,
+  Sparkles,
   Spade,
 } from 'lucide-react';
 import type { EquityState } from '../poker/useEquity';
@@ -40,7 +42,9 @@ function Metric({
     </div>
   );
 }
+
 const formatPercent = (value: number) => (value * 100).toFixed(1);
+
 export function AnalysisPanel({
   range,
   calculation,
@@ -95,6 +99,80 @@ export function AnalysisPanel({
           : verdict === 'check'
             ? 'There is no bet to call. Checking costs nothing.'
             : message;
+
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const aiRequestId = useRef(0);
+  const analysisIdentity = result && math
+    ? [
+        range.position,
+        range.playstyle,
+        range.percentage.toFixed(4),
+        result.equity.toFixed(8),
+        math.potOdds.toFixed(8),
+        math.ev.toFixed(8),
+        pot.toFixed(4),
+        call.toFixed(4),
+      ].join('|')
+    : 'empty';
+
+  useEffect(() => {
+    aiRequestId.current += 1;
+    setAiExplanation(null);
+    setAiError(null);
+    setAiLoading(false);
+  }, [analysisIdentity]);
+
+  async function explainHand() {
+    if (!result || !math) return;
+
+    const requestId = ++aiRequestId.current;
+    setAiLoading(true);
+    setAiError(null);
+
+    try {
+      const response = await fetch('/api/explain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          position: range.position,
+          playstyle: range.playstyle,
+          rangePercentage: range.percentage,
+          equity: result.equity,
+          potOdds: math.potOdds,
+          ev: math.ev,
+          pot,
+          call,
+          method: result.method,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        explanation?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.explanation) {
+        throw new Error(data.error ?? 'AI explanation is unavailable.');
+      }
+
+      if (requestId !== aiRequestId.current) return;
+      setAiExplanation(data.explanation);
+    } catch (requestError) {
+      if (requestId !== aiRequestId.current) return;
+      setAiError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'AI explanation is unavailable.',
+      );
+    } finally {
+      if (requestId === aiRequestId.current) setAiLoading(false);
+    }
+  }
+
   return (
     <aside
       aria-labelledby="analysis-heading"
@@ -218,6 +296,63 @@ export function AnalysisPanel({
           </p>
         )}
       </section>
+
+      {result && math && (
+        <section
+          aria-labelledby="ai-explanation-heading"
+          className="mb-6 rounded-xl border border-violet-300/15 bg-violet-300/[0.035] p-5"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles
+              aria-hidden="true"
+              className="size-4 text-violet-300"
+              strokeWidth={1.7}
+            />
+            <h3
+              id="ai-explanation-heading"
+              className="text-sm font-medium text-slate-200"
+            >
+              AI hand explanation
+            </h3>
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            The math above stays authoritative. AI only explains the calculated
+            result and its assumptions.
+          </p>
+
+          {!aiExplanation && (
+            <button
+              type="button"
+              onClick={explainHand}
+              disabled={aiLoading}
+              className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-violet-300/20 bg-violet-300/10 px-4 text-sm font-medium text-violet-100 transition-colors hover:bg-violet-300/15 disabled:cursor-wait disabled:opacity-60"
+            >
+              {aiLoading ? (
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                />
+              ) : (
+                <Sparkles aria-hidden="true" className="size-4" />
+              )}
+              {aiLoading ? 'Explaining…' : 'Explain this decision'}
+            </button>
+          )}
+
+          {aiExplanation && (
+            <div className="mt-4 whitespace-pre-line rounded-lg border border-white/[0.07] bg-black/10 p-4 text-sm leading-relaxed text-slate-300">
+              {aiExplanation}
+            </div>
+          )}
+
+          {aiError && (
+            <p role="alert" className="mt-3 text-xs leading-relaxed text-rose-300">
+              {aiError}
+            </p>
+          )}
+        </section>
+      )}
+
       <p className="text-xs leading-relaxed text-slate-500">
         Model assumes full showdown equity against a fixed range, with no rake,
         future bets, or side pots. The pot includes the opponent’s bet before
