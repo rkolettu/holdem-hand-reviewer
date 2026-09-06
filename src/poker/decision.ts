@@ -1,4 +1,6 @@
+import type { Card } from '../cards';
 import type { OpponentRange } from './ranges';
+import { boardAwareContinuingCombinations } from './postflop';
 
 export type DecisionAction = 'fold' | 'call' | 'raise';
 
@@ -55,23 +57,15 @@ export function validateRaiseInputs(
 export function continuingCombinations(
   range: OpponentRange,
   foldEquity: number,
+  board: Card[] = [],
+  blockedCards: Card[] = board,
 ) {
-  if (!Number.isFinite(foldEquity) || foldEquity < 0 || foldEquity > 1)
-    throw new Error('Fold equity must be between 0 and 1.');
-  if (foldEquity >= 1) return [];
-
-  const continueFraction = 1 - foldEquity;
-  const count = Math.max(
-    1,
-    Math.min(
-      range.combinations.length,
-      Math.round(range.combinations.length * continueFraction),
-    ),
+  return boardAwareContinuingCombinations(
+    range,
+    foldEquity,
+    board,
+    blockedCards,
   );
-
-  // Ranges are ordered strongest to weakest. The raise model assumes villain
-  // folds the weakest portion and continues with the strongest remaining combos.
-  return range.combinations.slice(0, count);
 }
 
 export function raiseMetrics(
