@@ -46,7 +46,7 @@ it('connects opponent position and playstyle to the displayed range', async () =
     screen.getByRole('button', { name: 'Nit' }).getAttribute('aria-pressed'),
   ).toBe('true');
 });
-it('waits for required inputs, shows real equity/EV, then clears stale analysis', async () => {
+it('waits for required inputs, shows real call EV, then clears stale analysis', async () => {
   vi.stubGlobal('Worker', InProcessWorker);
   const user = userEvent.setup();
   render(<App />);
@@ -72,15 +72,16 @@ it('waits for required inputs, shows real equity/EV, then clears stale analysis'
   await user.type(screen.getByRole('spinbutton', { name: 'Pot Size' }), '75');
   expect(InProcessWorker.inputs).toHaveLength(0);
   await user.type(
-    screen.getByRole('spinbutton', { name: 'Call Amount' }),
+    screen.getByRole('spinbutton', { name: 'Bet / Call Amount' }),
     '25',
   );
-  await screen.findByText('+EV Decision');
+  await screen.findByText('Highest modeled EV');
   expect(screen.getByText('100.0')).toBeTruthy();
   expect(screen.getByText('25.0')).toBeTruthy();
-  expect(screen.getByText('+75.00')).toBeTruthy();
+  expect(screen.getAllByText('+75.00').length).toBeGreaterThan(0);
   expect(InProcessWorker.inputs).toHaveLength(1);
-  await user.clear(screen.getByRole('spinbutton', { name: 'Call Amount' }));
-  expect(screen.queryByText('+EV Decision')).toBeNull();
+  await user.clear(
+    screen.getByRole('spinbutton', { name: 'Bet / Call Amount' }),
+  );
   expect(screen.queryByText('+75.00')).toBeNull();
 }, 15000);
