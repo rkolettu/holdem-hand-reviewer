@@ -1,4 +1,7 @@
+import type { Card } from '../cards';
 import type { OpponentRange } from './ranges';
+import { boardAwareContinuingCombinations } from './postflop';
+import { registerContinuationSelection } from './continuationContext';
 
 export type DecisionAction = 'fold' | 'call' | 'raise';
 
@@ -55,23 +58,36 @@ export function validateRaiseInputs(
 export function continuingCombinations(
   range: OpponentRange,
   foldEquity: number,
+  board: Card[] = [],
+  blockedCards: Card[] = board,
 ) {
   if (!Number.isFinite(foldEquity) || foldEquity < 0 || foldEquity > 1)
     throw new Error('Fold equity must be between 0 and 1.');
-  if (foldEquity >= 1) return [];
 
-  const continueFraction = 1 - foldEquity;
+  if (board.length >= 3) {
+    return boardAwareContinuingCombinations(
+      range,
+      foldEquity,
+      board,
+      blockedCards,
+    );
+  }
+
+  if (foldEquity >= 1) return registerContinuationSelection([], range, foldEquity);
+
   const count = Math.max(
     1,
     Math.min(
       range.combinations.length,
-      Math.round(range.combinations.length * continueFraction),
+      Math.round(range.combinations.length * (1 - foldEquity)),
     ),
   );
+  const provisional = range.combinations.slice(0, count);
 
-  // Ranges are ordered strongest to weakest. The raise model assumes villain
-  // folds the weakest portion and continues with the strongest remaining combos.
-  return range.combinations.slice(0, count);
+  // Review/practice components currently construct this list before the equity
+  // hook sees the board. Register the original range and fold assumption so the
+  // hook can replace this provisional preflop slice with a board-aware range.
+  return registerContinuationSelection(provisional, range, foldEquity);
 }
 
 export function raiseMetrics(
