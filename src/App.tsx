@@ -1,22 +1,37 @@
-import { useRef, useState, type MouseEvent } from 'react';
+import { useRef, useState, useMemo, type MouseEvent } from 'react';
+import { AnalysisPanel } from './components/AnalysisPanel';
+import { useEquity } from './poker/useEquity';
+import { validateScenario } from './poker/scenario';
+import {
+  generateOpponentRange,
+  PLAYSTYLES,
+  BASE_RANGES,
+  type Position,
+  type Playstyle,
+} from './poker/ranges';
+import type { EquityInput } from './poker/equity';
+import { Button } from '@/components/ui/button';
 import { CardSlot } from './components/CardSlot';
 import { CardPicker } from './components/CardPicker';
 import { type Card, type ActiveSlot, sameCard } from './cards';
-import {
-  ArrowUpRight,
-  ChartNoAxesCombined,
-  CircleDot,
-  Diamond,
-  Layers2,
-  Spade,
-} from 'lucide-react';
+import { Diamond, Layers2, Spade } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
 
-function NumberField({ id, label }: { id: string; label: string }) {
+function NumberField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <div className="min-w-0 space-y-2.5">
       <label htmlFor={id} className="block text-sm font-medium text-slate-300">
@@ -26,6 +41,8 @@ function NumberField({ id, label }: { id: string; label: string }) {
         <Input
           id={id}
           name={id}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
           type="number"
           inputMode="decimal"
           aria-describedby="amount-unit"
@@ -45,43 +62,6 @@ function NumberField({ id, label }: { id: string; label: string }) {
   );
 }
 
-function Metric({
-  title,
-  description,
-  unit,
-}: {
-  title: string;
-  description: string;
-  unit: string;
-}) {
-  return (
-    <div className="border-b border-white/[0.07] py-7 first:pt-0">
-      <dt className="flex items-center justify-between gap-3 text-sm font-medium text-slate-300">
-        {title}
-        <ArrowUpRight
-          aria-hidden="true"
-          className="size-4 text-slate-600"
-          strokeWidth={1.5}
-        />
-      </dt>
-      <dd className="mt-3">
-        <div className="flex items-baseline gap-2">
-          <span
-            aria-label="Not available"
-            className="font-mono text-4xl font-light tracking-tight text-slate-500"
-          >
-            —
-          </span>
-          <span className="text-sm text-slate-500">{unit}</span>
-        </div>
-        <p className="mt-2 text-sm leading-relaxed text-slate-400">
-          {description}
-        </p>
-      </dd>
-    </div>
-  );
-}
-
 export default function App() {
   const [holeCards, setHoleCards] = useState<(Card | null)[]>([null, null]);
   const [communityCards, setCommunityCards] = useState<(Card | null)[]>([
@@ -91,6 +71,37 @@ export default function App() {
     null,
     null,
   ]);
+  const [opponentPosition, setOpponentPosition] = useState<Position>('BTN');
+  const [opponentPlaystyle, setOpponentPlaystyle] =
+    useState<Playstyle>('Tight-Aggressive');
+  const [potSize, setPotSize] = useState('');
+  const [callAmount, setCallAmount] = useState('');
+  const [stackSize, setStackSize] = useState('');
+  const range = useMemo(
+    () => generateOpponentRange(opponentPosition, opponentPlaystyle),
+    [opponentPosition, opponentPlaystyle],
+  );
+  const scenario = validateScenario(
+    holeCards,
+    communityCards,
+    potSize,
+    callAmount,
+    stackSize,
+  );
+  const equityInput = useMemo<EquityInput | null>(
+    () =>
+      scenario.ready
+        ? {
+            holeCards: holeCards as [Card, Card],
+            communityCards: communityCards.filter(
+              (card): card is Card => card !== null,
+            ),
+            opponentCombos: range.combinations,
+          }
+        : null,
+    [holeCards, communityCards, range, scenario.ready],
+  );
+  const calculation = useEquity(equityInput);
   const [activeSlot, setActiveSlot] = useState<ActiveSlot | null>(null);
   const slotButton = useRef<HTMLButtonElement | null>(null);
   const usedCards = [...holeCards, ...communityCards].filter(
@@ -330,7 +341,30 @@ export default function App() {
               </div>
             </section>
           </div>
-          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-emerald-100/50">
+          <fieldset className="mt-8 border-t border-white/10 pt-5">
+            <legend className="px-2 text-sm font-medium text-emerald-100/80">
+              Opponent Playstyle
+            </legend>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              {PLAYSTYLES.map((style) => (
+                <Button
+                  key={style}
+                  type="button"
+                  variant="ghost"
+                  aria-label={style}
+                  aria-pressed={opponentPlaystyle === style}
+                  onClick={() => setOpponentPlaystyle(style)}
+                  className={`h-auto min-h-16 cursor-pointer flex-col gap-1 whitespace-normal rounded-xl border px-2 py-3 text-sm transition-colors focus-visible:ring-[#d6bc79] ${opponentPlaystyle === style ? 'border-[#d6bc79]/70 bg-[#d6bc79]/15 text-[#f1dba3] hover:bg-[#d6bc79]/20' : 'border-white/10 bg-black/10 text-emerald-100/70 hover:border-white/25 hover:bg-white/5'}`}
+                >
+                  <span>{style}</span>
+                  <span className="text-xs font-normal opacity-70">
+                    Base {BASE_RANGES[style]}%
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </fieldset>
+          <div className="mt-5 flex items-center justify-center gap-2 text-xs text-emerald-100/50">
             <Diamond aria-hidden="true" className="size-3 shrink-0" />
             Every decision starts with the right information.
           </div>
@@ -353,105 +387,64 @@ export default function App() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 xl:grid-cols-4">
-            <NumberField id="stack-size" label="Stack Size" />
-            <NumberField id="pot-size" label="Pot Size" />
-            <NumberField id="call-amount" label="Call Amount" />
+            <NumberField
+              id="stack-size"
+              label="Stack Size"
+              value={stackSize}
+              onChange={setStackSize}
+            />
+            <NumberField
+              id="pot-size"
+              label="Pot Size"
+              value={potSize}
+              onChange={setPotSize}
+            />
+            <NumberField
+              id="call-amount"
+              label="Call Amount"
+              value={callAmount}
+              onChange={setCallAmount}
+            />
             <div className="min-w-0 space-y-2.5">
               <label
                 htmlFor="position"
                 className="block text-sm font-medium text-slate-300"
               >
-                Position
+                Opponent Position
               </label>
               <NativeSelect
                 id="position"
                 name="position"
-                defaultValue=""
+                value={opponentPosition}
+                onChange={(event) =>
+                  setOpponentPosition(event.target.value as Position)
+                }
                 className="w-full [&_select]:h-12 [&_select]:rounded-xl [&_select]:border-white/10 [&_select]:bg-white/[0.035] [&_select]:pl-4 [&_select]:text-base [&_select]:text-slate-300 [&_select]:focus-visible:border-emerald-400/60 [&_select]:focus-visible:ring-emerald-400/20"
               >
-                <NativeSelectOption value="" disabled>
-                  Select position
-                </NativeSelectOption>
-                <NativeSelectOption value="utg">
+                <NativeSelectOption value="UTG">
                   Under the Gun
                 </NativeSelectOption>
-                <NativeSelectOption value="mp">
+                <NativeSelectOption value="MP">
                   Middle Position
                 </NativeSelectOption>
-                <NativeSelectOption value="hj">Hijack</NativeSelectOption>
-                <NativeSelectOption value="co">Cutoff</NativeSelectOption>
-                <NativeSelectOption value="btn">Button</NativeSelectOption>
-                <NativeSelectOption value="sb">Small Blind</NativeSelectOption>
-                <NativeSelectOption value="bb">Big Blind</NativeSelectOption>
+                <NativeSelectOption value="HJ">Hijack</NativeSelectOption>
+                <NativeSelectOption value="CO">Cutoff</NativeSelectOption>
+                <NativeSelectOption value="BTN">Button</NativeSelectOption>
+                <NativeSelectOption value="SB">Small Blind</NativeSelectOption>
+                <NativeSelectOption value="BB">Big Blind</NativeSelectOption>
               </NativeSelect>
             </div>
           </div>
         </section>
       </main>
 
-      <aside
-        aria-labelledby="analysis-heading"
-        className="flex min-w-0 flex-col border-t border-white/[0.08] bg-slate-900 px-6 py-7 sm:px-9 lg:border-l lg:border-t-0 lg:px-7 xl:px-9"
-      >
-        <div className="flex items-center gap-3">
-          <ChartNoAxesCombined
-            aria-hidden="true"
-            className="size-5 text-[#d6bc79]"
-            strokeWidth={1.5}
-          />
-          <h2
-            id="analysis-heading"
-            className="text-lg font-medium tracking-tight"
-          >
-            Hand analysis
-          </h2>
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          A clearer picture of your next move.
-        </p>
-        <div className="my-7 flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.025] px-3 py-2.5 text-xs text-slate-400">
-          <CircleDot aria-hidden="true" className="size-3.5 text-slate-500" />
-          Awaiting hand details
-        </div>
-        <dl>
-          <Metric
-            title="Pot Odds"
-            unit="%"
-            description="The price of continuing in the hand."
-          />
-          <Metric
-            title="Estimated Equity"
-            unit="%"
-            description="Your estimated share of the pot."
-          />
-          <Metric
-            title="Expected Value (EV)"
-            unit="BB"
-            description="The potential value of your decision."
-          />
-        </dl>
-        <section
-          aria-labelledby="verdict-heading"
-          className="my-7 min-h-44 rounded-xl border border-[#d6bc79]/15 bg-[#d6bc79]/[0.035] p-5"
-        >
-          <h3
-            id="verdict-heading"
-            className="text-xs font-medium uppercase tracking-[0.16em] text-[#d6bc79]"
-          >
-            Final Verdict
-          </h3>
-          <p className="mt-5 text-lg font-medium tracking-tight text-slate-300">
-            The next move is yours.
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            Your hand summary and decision insights will appear here.
-          </p>
-        </section>
-        <p className="mt-auto flex items-center gap-2 pt-4 text-xs text-slate-500">
-          <Spade aria-hidden="true" className="size-3.5" />
-          Study the hand. Sharpen your game.
-        </p>
-      </aside>
+      <AnalysisPanel
+        range={range}
+        calculation={calculation}
+        validation={scenario}
+        pot={scenario.pot}
+        call={scenario.call}
+      />
       <CardPicker
         activeSlot={activeSlot}
         selectedCard={selectedCard}

@@ -1,8 +1,8 @@
 # The Felt — Texas Hold’em Hand Reviewer
 
-A visual hand-review workspace built with React 19, Vite 8, TypeScript, and Tailwind CSS 4.
+React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compatible [PHE hand evaluator](https://github.com/thlorenz/phe).
 
-## Run locally
+## Run
 
 Requires Node.js 22.13 or later.
 
@@ -11,32 +11,49 @@ npm install
 npm run dev
 ```
 
-## Production build
-
 ```sh
+npm test
 npm run build
 npm start
 ```
 
-The build runs TypeScript checks and creates the static site in `dist/`.
+## Review a hand
 
-## Source map
+1. Select your two hole cards; click a filled slot to replace it or its X to clear it.
+2. Leave the board empty for preflop, or complete the flop before adding the turn and river.
+3. Select Opponent Position and Opponent Playstyle.
+4. Enter Pot Size and Call Amount in big blinds. Stack Size is optional; if supplied, the call cannot exceed it.
 
-- `src/App.tsx`: responsive 70/30 desktop layout, green felt, seven card placeholders, hand inputs, and analysis sidebar.
-- `src/cards.ts`: typed rank/suit definitions and card identity.
-- `src/components/CardSlot.tsx`: selectable cards and clear controls.
-- `src/components/CardPicker.tsx`: accessible modal with all 52 choices.
-- `src/App.test.tsx`: integration tests for selecting, replacing, clearing, duplicate prevention, and modal dismissal.
-- `src/styles.css`: Tailwind entry point, font choices, and felt gradient.
-- `src/main.tsx`: React entry point.
-- `vite.config.ts`: Vite, React, Tailwind PostCSS, and import alias configuration.
+The sidebar updates automatically. Clearing required inputs hides the previous analysis. New card/range inputs terminate old calculations and ignore stale responses. Card selections and inputs are kept in React state and reset on reload.
 
-Below 1024px, the analysis sidebar stacks beneath the workspace. Inputs use big blinds (BB). Click any card slot to select its rank and suit. Filled slots can be changed or cleared with the X button. Used cards are disabled in other slots. Escape, the close button, or the backdrop dismisses the modal. React state tracks two hole cards and five nullable community slots; selections reset when the page reloads. Analysis values remain intentionally empty.
+## Opponent model
 
-The Sites scaffold's bundled UI library remains available for future work. This phase uses its input, native select, button, and dialog components. The app itself runs directly on Vite as a client-rendered React application.
+These are explicit **assumed ranges**, not solved GTO strategies or measured population statistics. Base widths: Nit 5%, Tight-Aggressive 15%, Loose-Aggressive 30%, Calling Station 40%. Position multipliers: UTG 0.70, MP 1.00, HJ 1.10, CO 1.25, BTN 1.50, SB 1.20, BB 1.10.
 
-## Interaction tests
+An ordered hand-class list is expanded into all combinations for every included class: 6 per pair, 4 per suited hand, 12 per offsuit hand. A range always includes whole classes, so the displayed width is the actual combination count divided by 1,326 and can differ slightly from the target percentage. `generateOpponentRange` also returns a 13×13 matrix for future visualization. Known hero and board cards remove blocked combinations before evaluation. All remaining opponent combinations are weighted equally; no postflop action filter is assumed.
 
-```sh
-npm test
-```
+## Equity and decision math
+
+PHE evaluates the best five-card hand from seven cards. The engine enumerates every legal opponent and remaining board combination **exactly on the flop, turn and river**. Preflop uses **100,000 reproducible seeded samples**, explicitly labeled an estimate with an approximate conservative 95% sampling margin. Sampling uncertainty excludes model/range uncertainty. Equity is `win + tie / 2` for a single opponent. Calculations run in a cancellable Web Worker.
+
+**Pot Size includes the opponent’s bet and excludes your prospective call.**
+
+- Pot odds: `call / (pot + call)`
+- Call EV: `equity * (pot + call) - call`
+- Equivalent EV: `equity * pot - (1 - equity) * call`
+
+This corrects the contradictory initial EV expression, which counted the prospective call again in the win branch. With a 75 BB pot and a 25 BB call, break-even equity is 25%; 30% equity gives +5 BB EV and 20% gives −5 BB EV.
+
+Verdicts compare unrounded equity with pot odds: green for a positive call EV, red for a negative call EV, neutral at break-even, and check when no call is needed. Figures are rounded only for display. Model assumes full equity realization at showdown, no rake, no future betting, and no side pots. A positive estimated EV is not a guarantee of profit.
+
+## Source
+
+- `src/App.tsx`: card/input/opponent state and workspace.
+- `src/components/CardPicker.tsx`, `CardSlot.tsx`: card selection and clearing.
+- `src/components/AnalysisPanel.tsx`: live metrics, verdict, model explanation.
+- `src/poker/ranges.ts`: range generation and matrix data.
+- `src/poker/equity.ts`, `equity.worker.ts`, `useEquity.ts`: equity computation and asynchronous lifecycle.
+- `src/poker/metrics.ts`, `scenario.ts`: call math and input validation.
+- Tests cover known hands, ties, blockers, exact runout counts, deterministic sampling, combo accounting, finances, input gating, stale-worker cancellation, live UI and card picker behavior.
+
+The Sites scaffold's bundled UI library remains available for future work. This app runs directly on Vite as a client-rendered React application.
