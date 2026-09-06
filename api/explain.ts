@@ -57,7 +57,8 @@ function pct(value: number) {
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey =
+    process.env.GROQ_API_KEY ?? process.env.Hand_Reviewer_Groq_Key;
 
   if (!apiKey) {
     return Response.json(
