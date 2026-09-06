@@ -12,7 +12,7 @@ Built with React 19, Vite 8, TypeScript, Tailwind CSS 4, and the browser-compati
 - Model an opponent using position-adjusted starting ranges for four playstyles.
 - Calculate showdown equity, pot odds, and call EV.
 - Enter a raise-to size and an assumed fold-to-raise percentage.
-- Recalculate equity against the opponent’s stronger continuing range.
+- Recalculate equity against a **board-aware continuing range** when villain calls the raise.
 - Compare **Fold EV = 0**, **Call EV**, and **Raise EV** side by side.
 - Show the break-even fold percentage for the entered raise size.
 - Quick sizing presets include minimum raise, 3× the faced bet, and a pot-sized raise.
@@ -41,9 +41,29 @@ Base opening widths:
 - Loose-Aggressive: 30%
 - Calling Station: 40%
 
-Position multipliers adjust those widths. Hand classes are ordered strongest to weakest and expanded into actual combinations. Known hero and board cards remove blocked combinations before evaluation.
+Position multipliers adjust those widths. Hand classes are expanded into actual two-card combinations. Known hero and board cards remove blocked combinations before showdown equity is evaluated.
 
-For raise analysis, the entered fold-to-raise percentage is treated as an assumption. If villain folds `F%`, the model assumes they fold the weakest `F%` of the selected range and continue with the strongest remaining combinations. Hero equity is recalculated against that continue range.
+### Board-aware raise continuation
+
+The entered fold-to-raise percentage is still an explicit assumption, but postflop the model no longer just chops the bottom of the preflop range.
+
+For every legal villain combination, the app scores how that specific hand interacts with the current board. The classifier distinguishes:
+
+- straight flushes, quads, full houses, flushes, and straights,
+- sets and trips,
+- two pair,
+- overpairs,
+- top pair,
+- middle pair and other pairs,
+- flush draws,
+- open-ended straight draws,
+- gutshots,
+- overcards,
+- air.
+
+Made-hand class drives the continuation score, live draws add weight, and kicker quality only breaks close ties. If villain is assumed to fold `F%`, blockers are removed first and the weakest board-interacting `F%` of the remaining combinations are folded. Hero equity is then recalculated against the resulting continuing range.
+
+This is still a transparent behavioral model rather than a solver. A real opponent can fold some strong-looking hands, continue some weak-looking hands, mix actions, bluff-raise, or use frequencies that depend on bet size and board texture. The app exposes fold-to-raise as an input instead of pretending those frequencies are known.
 
 Practice mode uses simple archetype-based fold-to-raise assumptions with a small raise-size adjustment. Those are study assumptions, not solver outputs.
 
@@ -73,7 +93,7 @@ Let:
 - `R` = hero’s total raise-to amount from the current decision point,
 - `C` = amount hero would need to call,
 - `F` = assumed probability villain folds to the raise,
-- `E` = hero equity against villain’s continuing range.
+- `E` = hero equity against villain’s board-aware continuing range.
 
 If villain calls, they add `R − C` more chips. The final pot is:
 
@@ -112,8 +132,10 @@ npm start
 - `src/components/AnalysisPanel.tsx`: fold / call / raise EV comparison.
 - `src/components/PracticeMode.tsx`: randomized decision game and scoring.
 - `src/poker/equity.ts`, `equity.worker.ts`, `useEquity.ts`: showdown equity engine.
-- `src/poker/ranges.ts`: starting-range generation.
-- `src/poker/decision.ts`: continue-range construction, raise EV, and action comparison.
+- `src/poker/ranges.ts`: position / playstyle starting-range generation.
+- `src/poker/postflop.ts`: board-aware made-hand and draw classification.
+- `src/poker/continuationContext.ts`: resolves board-aware continuation ranges before the equity worker runs.
+- `src/poker/decision.ts`: raise validation, continuation assumptions, raise EV, and action comparison.
 - `src/poker/practice.ts`: randomized practice scenarios.
 - `src/poker/metrics.ts`: call pot odds and EV.
 
