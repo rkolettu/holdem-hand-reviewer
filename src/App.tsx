@@ -227,10 +227,10 @@ export default function App() {
             </div>
             <div>
               <p className="text-lg font-semibold tracking-tight">
-                The Felt<span className="text-[#d6bc79]">.</span>
+                Hold’em Decision Lab
               </p>
               <p className="text-xs text-slate-400">
-                Texas Hold’em · Decision Lab
+                Equity · EV · Practice
               </p>
             </div>
           </div>
