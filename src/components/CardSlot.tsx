@@ -26,7 +26,11 @@ export function CardSlot({
             : `Select ${label}`
         }
         onClick={onOpen}
-        className={`group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border p-0 shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-[#d6bc79] focus-visible:ring-offset-2 focus-visible:ring-offset-[#103e35] sm:rounded-xl ${card ? `border-white/80 bg-slate-100 hover:bg-white ${suitStyle[card.suit].cardColor}` : 'border-dashed border-white/35 bg-white/[0.035] text-emerald-100/30 hover:border-[#d6bc79]/70 hover:bg-white/[0.08] hover:text-[#d6bc79]'}`}
+        className={`group relative flex h-full w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border p-0 shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-[#d6bc79] focus-visible:ring-offset-2 focus-visible:ring-offset-[#103e35] sm:rounded-xl ${
+          card
+            ? `border-white/80 bg-slate-100 hover:-translate-y-0.5 hover:bg-white hover:shadow-md ${suitStyle[card.suit].cardColor}`
+            : 'border-dashed border-white/25 bg-white/[0.05] text-emerald-100/45 hover:border-[#d6bc79]/70 hover:bg-white/[0.08] hover:text-[#d6bc79]'
+        }`}
       >
         {card ? (
           <span aria-hidden="true" className="relative block h-full w-full">
@@ -43,8 +47,8 @@ export function CardSlot({
         ) : (
           <Plus
             aria-hidden="true"
-            className="size-4 opacity-60 sm:size-5"
-            strokeWidth={1}
+            className="size-4 opacity-70 sm:size-5"
+            strokeWidth={1.25}
           />
         )}
       </Button>
@@ -55,7 +59,7 @@ export function CardSlot({
           size="icon-sm"
           aria-label={`Clear ${label}`}
           onClick={onClear}
-          className="absolute -right-1.5 -top-1.5 z-10 size-7 cursor-pointer rounded-full border border-slate-600 bg-slate-900 text-slate-300 shadow-md hover:bg-slate-700 hover:text-white focus-visible:ring-[#d6bc79]"
+          className="absolute -right-1.5 -top-1.5 z-10 size-7 cursor-pointer rounded-full border border-white/20 bg-[#101a17] text-[#f5f1e8] shadow-md hover:bg-[#1a2824] hover:text-white focus-visible:ring-[#d6bc79]"
         >
           <X aria-hidden="true" className="size-3.5" />
         </Button>
