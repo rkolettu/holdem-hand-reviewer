@@ -13,6 +13,7 @@
 
 :root {
   color-scheme: light;
+
   --portfolio-bg: #f4f1ea;
   --portfolio-surface: #fbfaf7;
   --portfolio-surface-strong: #ffffff;
@@ -22,6 +23,16 @@
   --portfolio-border: rgba(23, 23, 23, 0.12);
   --portfolio-border-strong: rgba(23, 23, 23, 0.18);
   --portfolio-blue: #1d4ed8;
+
+  --felt-deep: #072d28;
+  --felt-mid: #0c443a;
+  --felt-light: #175c4e;
+  --felt-text: #f5f1e8;
+  --felt-soft: rgba(245, 241, 232, 0.72);
+  --felt-faint: rgba(245, 241, 232, 0.5);
+  --felt-border: rgba(255, 255, 255, 0.12);
+  --felt-border-strong: rgba(255, 255, 255, 0.2);
+  --felt-gold: #d6bc79;
 }
 
 body {
@@ -44,46 +55,28 @@ select {
   color: var(--portfolio-text);
 }
 
-/* Keep the app chrome aligned with the portfolio, but preserve a real poker felt. */
-.felt {
-  background: radial-gradient(
-    ellipse at 50% 42%,
-    #185448 0%,
-    #103e35 42%,
-    #092a26 76%,
-    #082321 100%
-  );
-}
-
-/* Explain the playstyle labels without adding another control to the workspace. */
-.felt > fieldset::after {
-  content: 'Base % = the share of all 1,326 possible preflop starting-hand combinations this playstyle is assumed to enter with before position adjustment. Position can tighten or widen that range.';
-  display: block;
-  max-width: 760px;
-  margin: 0.8rem auto 0;
-  color: rgba(209, 250, 229, 0.55);
-  font-size: 0.75rem;
-  line-height: 1.55;
-  text-align: center;
-}
-
-/* Light-theme remapping for the surrounding app chrome. */
+/* Light portfolio-style chrome around the poker workspace. */
 [class~='bg-[#0c141a]'] {
   background: var(--portfolio-bg) !important;
 }
+
 [class~='bg-[#0e181e]'] {
   background: var(--portfolio-surface) !important;
 }
+
 [class~='bg-slate-900'] {
   background: var(--portfolio-surface-strong) !important;
 }
+
 [class~='bg-slate-800'],
 [class~='bg-slate-700'] {
   background: #eeeae2 !important;
 }
+
 [class~='bg-black/10'] {
   background: rgba(23, 23, 23, 0.025) !important;
 }
+
 [class~='bg-white/[0.025]'],
 [class~='bg-white/[0.035]'],
 [class~='bg-white/[0.05]'],
@@ -98,14 +91,17 @@ select {
 [class~='text-slate-200'] {
   color: var(--portfolio-text) !important;
 }
+
 [class~='text-slate-300'],
 [class~='text-slate-400'] {
   color: var(--portfolio-soft) !important;
 }
+
 [class~='text-slate-500'],
 [class~='text-slate-600'] {
   color: var(--portfolio-faint) !important;
 }
+
 [class~='text-emerald-50/80'],
 [class~='text-emerald-50/65'],
 [class~='text-emerald-50'],
@@ -124,13 +120,16 @@ select {
 [class~='text-[#f1dba3]'] {
   color: var(--portfolio-blue) !important;
 }
+
 [class~='fill-[#d6bc79]'] {
   fill: var(--portfolio-blue) !important;
 }
+
 [class~='bg-[#d6bc79]'] {
   background: var(--portfolio-text) !important;
   color: #fff !important;
 }
+
 [class~='bg-[#d6bc79]/15'],
 [class~='bg-[#d6bc79]/20'],
 [class~='bg-[#d6bc79]/[0.08]'],
@@ -138,6 +137,7 @@ select {
 [class~='bg-[#d6bc79]/[0.045]'] {
   background: rgba(29, 78, 216, 0.07) !important;
 }
+
 [class~='border-[#d6bc79]'],
 [class~='border-[#d6bc79]/70'],
 [class~='border-[#d6bc79]/45'],
@@ -160,6 +160,7 @@ select {
 [class~='border-slate-600'] {
   border-color: var(--portfolio-border) !important;
 }
+
 [class~='border-white/80'],
 [class~='border-slate-300'] {
   border-color: var(--portfolio-border-strong) !important;
@@ -169,9 +170,11 @@ select {
 [class~='focus-visible:ring-emerald-400/20'] {
   --tw-ring-color: rgba(29, 78, 216, 0.25) !important;
 }
+
 [class~='focus-visible:border-emerald-400/60'] {
   border-color: rgba(29, 78, 216, 0.55) !important;
 }
+
 [class~='focus-visible:ring-offset-[#103e35]'],
 [class~='focus-visible:ring-offset-slate-900'] {
   --tw-ring-offset-color: var(--portfolio-surface-strong) !important;
@@ -181,8 +184,142 @@ input,
 select {
   color: var(--portfolio-text) !important;
 }
+
 input::placeholder {
   color: var(--portfolio-faint) !important;
+}
+
+/* The actual poker workspace stays dark green and intentionally distinct. */
+.felt {
+  color: var(--felt-text);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(31, 112, 91, 0.48), transparent 31%),
+    radial-gradient(circle at 80% 5%, rgba(44, 135, 108, 0.12), transparent 26%),
+    linear-gradient(180deg, var(--felt-mid) 0%, var(--felt-deep) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.felt h1 {
+  color: var(--felt-text) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.felt [class~='text-slate-100'],
+.felt [class~='text-slate-200'] {
+  color: var(--felt-text) !important;
+}
+
+.felt [class~='text-slate-300'],
+.felt [class~='text-slate-400'],
+.felt [class~='text-emerald-50'],
+.felt [class~='text-emerald-50/80'],
+.felt [class~='text-emerald-50/65'],
+.felt [class~='text-emerald-100/80'],
+.felt [class~='text-emerald-100/70'],
+.felt [class~='text-emerald-100/60'],
+.felt [class~='text-emerald-100/55'],
+.felt [class~='text-emerald-200/60'] {
+  color: var(--felt-soft) !important;
+}
+
+.felt [class~='text-slate-500'],
+.felt [class~='text-slate-600'],
+.felt [class~='text-emerald-100/50'],
+.felt [class~='text-emerald-100/45'],
+.felt [class~='text-emerald-100/30'] {
+  color: var(--felt-faint) !important;
+}
+
+.felt [class~='text-[#d6bc79]'],
+.felt [class~='text-[#f1dba3]'] {
+  color: var(--felt-gold) !important;
+}
+
+.felt [class~='fill-[#d6bc79]'] {
+  fill: var(--felt-gold) !important;
+}
+
+.felt [class~='bg-black/10'] {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.felt [class~='bg-white/[0.025]'],
+.felt [class~='bg-white/[0.035]'],
+.felt [class~='bg-white/[0.05]'],
+.felt [class~='bg-white/[0.055]'],
+.felt [class~='bg-white/[0.07]'],
+.felt [class~='bg-white/[0.08]'],
+.felt [class~='bg-white/5'] {
+  background: rgba(255, 255, 255, 0.045) !important;
+}
+
+.felt [class~='bg-[#d6bc79]/15'],
+.felt [class~='bg-[#d6bc79]/20'],
+.felt [class~='bg-[#d6bc79]/[0.08]'],
+.felt [class~='bg-[#d6bc79]/[0.07]'],
+.felt [class~='bg-[#d6bc79]/[0.045]'] {
+  background: rgba(214, 188, 121, 0.11) !important;
+}
+
+.felt [class~='border-white/10'],
+.felt [class~='border-white/25'],
+.felt [class~='border-white/35'],
+.felt [class~='border-white/[0.055]'],
+.felt [class~='border-white/[0.025]'],
+.felt [class~='border-white/[0.06]'],
+.felt [class~='border-white/[0.07]'],
+.felt [class~='border-white/[0.08]'],
+.felt [class~='border-white/[0.1]'] {
+  border-color: var(--felt-border) !important;
+}
+
+.felt [class~='border-[#d6bc79]'],
+.felt [class~='border-[#d6bc79]/70'],
+.felt [class~='border-[#d6bc79]/45'],
+.felt [class~='border-[#d6bc79]/40'],
+.felt [class~='border-[#d6bc79]/25'],
+.felt [class~='border-[#d6bc79]/15'] {
+  border-color: rgba(214, 188, 121, 0.58) !important;
+}
+
+.felt [class~='focus-visible:ring-[#d6bc79]'] {
+  --tw-ring-color: rgba(214, 188, 121, 0.7) !important;
+}
+
+.felt [class~='focus-visible:ring-offset-[#103e35]'] {
+  --tw-ring-offset-color: var(--felt-mid) !important;
+}
+
+/* Make the playstyle choices read as part of the table, not the light app chrome. */
+.felt fieldset button[aria-pressed='false'] {
+  color: var(--felt-soft) !important;
+  background: rgba(2, 20, 17, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
+}
+
+.felt fieldset button[aria-pressed='false']:hover {
+  color: var(--felt-text) !important;
+  background: rgba(255, 255, 255, 0.065) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.felt fieldset button[aria-pressed='true'] {
+  color: var(--felt-gold) !important;
+  background: rgba(214, 188, 121, 0.1) !important;
+  border-color: rgba(214, 188, 121, 0.7) !important;
+  box-shadow: inset 0 0 0 1px rgba(214, 188, 121, 0.08);
+}
+
+/* Explain the range assumption in plain English right below the playstyles. */
+.felt > fieldset::after {
+  content: 'Base % = the share of all 1,326 possible preflop starting-hand combinations this playstyle is assumed to enter with before position adjustment. Position can tighten or widen that range.';
+  display: block;
+  max-width: 760px;
+  margin: 0.9rem auto 0;
+  color: var(--felt-faint);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  text-align: center;
 }
 
 .card-picker {
@@ -195,78 +332,4 @@ input::placeholder {
 [data-slot='dialog-overlay'] {
   background-color: rgba(23, 23, 23, 0.28);
   backdrop-filter: blur(5px);
-}
-
-/* Restore the original dark-table treatment only inside the poker felt. */
-.felt [class~='text-slate-100'],
-.felt [class~='text-slate-200'] {
-  color: #f1f5f9 !important;
-}
-.felt [class~='text-slate-300'],
-.felt [class~='text-slate-400'] {
-  color: #cbd5e1 !important;
-}
-.felt [class~='text-slate-500'],
-.felt [class~='text-slate-600'] {
-  color: #94a3b8 !important;
-}
-.felt [class~='text-emerald-50'],
-.felt [class~='text-emerald-50/80'],
-.felt [class~='text-emerald-50/65'] {
-  color: #ecfdf5 !important;
-}
-.felt [class~='text-emerald-100/80'],
-.felt [class~='text-emerald-100/70'],
-.felt [class~='text-emerald-100/60'],
-.felt [class~='text-emerald-100/55'],
-.felt [class~='text-emerald-100/50'],
-.felt [class~='text-emerald-100/45'],
-.felt [class~='text-emerald-100/30'],
-.felt [class~='text-emerald-200/60'] {
-  color: rgba(209, 250, 229, 0.7) !important;
-}
-.felt [class~='text-[#d6bc79]'],
-.felt [class~='text-[#f1dba3]'] {
-  color: #d6bc79 !important;
-}
-.felt [class~='fill-[#d6bc79]'] {
-  fill: #d6bc79 !important;
-}
-.felt [class~='bg-black/10'] {
-  background: rgba(0, 0, 0, 0.1) !important;
-}
-.felt [class~='bg-white/[0.025]'],
-.felt [class~='bg-white/[0.035]'],
-.felt [class~='bg-white/[0.05]'],
-.felt [class~='bg-white/[0.055]'],
-.felt [class~='bg-white/[0.07]'],
-.felt [class~='bg-white/[0.08]'],
-.felt [class~='bg-white/5'] {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-.felt [class~='bg-[#d6bc79]/15'],
-.felt [class~='bg-[#d6bc79]/20'],
-.felt [class~='bg-[#d6bc79]/[0.08]'],
-.felt [class~='bg-[#d6bc79]/[0.07]'],
-.felt [class~='bg-[#d6bc79]/[0.045]'] {
-  background: rgba(214, 188, 121, 0.12) !important;
-}
-.felt [class~='border-white/10'],
-.felt [class~='border-white/25'],
-.felt [class~='border-white/35'],
-.felt [class~='border-white/[0.055]'],
-.felt [class~='border-white/[0.025]'],
-.felt [class~='border-white/[0.06]'],
-.felt [class~='border-white/[0.07]'],
-.felt [class~='border-white/[0.08]'],
-.felt [class~='border-white/[0.1]'] {
-  border-color: rgba(255, 255, 255, 0.12) !important;
-}
-.felt [class~='border-[#d6bc79]'],
-.felt [class~='border-[#d6bc79]/70'],
-.felt [class~='border-[#d6bc79]/45'],
-.felt [class~='border-[#d6bc79]/40'],
-.felt [class~='border-[#d6bc79]/25'],
-.felt [class~='border-[#d6bc79]/15'] {
-  border-color: rgba(214, 188, 121, 0.55) !important;
 }
