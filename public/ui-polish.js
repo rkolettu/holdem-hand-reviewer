@@ -144,14 +144,20 @@
     );
     if (!villainLine) return;
 
-    villainLine.querySelector('.practice-base-range')?.remove();
     const text = villainLine.textContent ?? '';
     const playstyle = Object.keys(PLAYSTYLE_BASE).find((name) => text.includes(name));
     if (!playstyle) return;
 
+    const desired = ` · Base range: ${PLAYSTYLE_BASE[playstyle]}%`;
+    const existing = villainLine.querySelector('.practice-base-range');
+    if (existing) {
+      if (existing.textContent !== desired) existing.textContent = desired;
+      return;
+    }
+
     const range = document.createElement('span');
     range.className = 'practice-base-range';
-    range.textContent = ` · Base range: ${PLAYSTYLE_BASE[playstyle]}%`;
+    range.textContent = desired;
     villainLine.appendChild(range);
   }
 
@@ -188,6 +194,10 @@
   }
 
   const observer = new MutationObserver(() => queueMicrotask(applyPolish));
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
   applyPolish();
 })();
