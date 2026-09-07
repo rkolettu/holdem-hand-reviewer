@@ -1,4 +1,4 @@
-# The Felt — Texas Hold’em Decision Lab
+# Hold’em Decision Lab
 
 A browser-based poker study tool for reviewing postflop decisions and practicing fold / call / raise spots with explicit expected-value assumptions.
 

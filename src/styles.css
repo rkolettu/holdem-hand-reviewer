@@ -1,43 +1,182 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Avenir Next', 'Segoe UI', Arial, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   --font-mono: 'SFMono-Regular', Consolas, monospace;
-  --color-input: #334155;
-  --color-ring: #34d399;
-  --color-muted-foreground: #94a3b8;
-  --color-primary: #d6bc79;
-  --color-primary-foreground: #0c141a;
+  --color-input: #d6d1c8;
+  --color-ring: #1d4ed8;
+  --color-muted-foreground: #8d8880;
+  --color-primary: #171717;
+  --color-primary-foreground: #ffffff;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+  --portfolio-bg: #f4f1ea;
+  --portfolio-surface: #fbfaf7;
+  --portfolio-surface-strong: #ffffff;
+  --portfolio-text: #171717;
+  --portfolio-soft: #5f5c56;
+  --portfolio-faint: #8d8880;
+  --portfolio-border: rgba(23, 23, 23, 0.12);
+  --portfolio-border-strong: rgba(23, 23, 23, 0.18);
+  --portfolio-blue: #1d4ed8;
 }
+
 body {
   margin: 0;
   min-width: 320px;
+  background:
+    radial-gradient(circle at top right, rgba(29, 78, 216, 0.055), transparent 32%),
+    var(--portfolio-bg);
+  color: var(--portfolio-text);
 }
+
 button,
 input,
 select {
   font: inherit;
 }
+
 ::selection {
-  background: #d6bc7940;
-  color: #fff;
-}
-.felt {
-  background: radial-gradient(
-    ellipse at 50% 42%,
-    #185448 0%,
-    #103e35 42%,
-    #092a26 76%,
-    #082321 100%
-  );
+  background: rgba(29, 78, 216, 0.14);
+  color: var(--portfolio-text);
 }
 
-/* Dim the workspace behind the dialog without changing its layout. */
+/* The table stays visually distinct, but uses the same warm neutral system as the portfolio. */
+.felt {
+  background:
+    radial-gradient(circle at 82% 4%, rgba(29, 78, 216, 0.07), transparent 34%),
+    linear-gradient(180deg, #fbfaf7 0%, #f1ede5 100%);
+}
+
+/* Light-theme remapping for the existing utility-driven UI. */
+[class~='bg-[#0c141a]'] {
+  background: var(--portfolio-bg) !important;
+}
+[class~='bg-[#0e181e]'] {
+  background: var(--portfolio-surface) !important;
+}
+[class~='bg-slate-900'] {
+  background: var(--portfolio-surface-strong) !important;
+}
+[class~='bg-slate-800'],
+[class~='bg-slate-700'] {
+  background: #eeeae2 !important;
+}
+[class~='bg-black/10'] {
+  background: rgba(23, 23, 23, 0.025) !important;
+}
+[class~='bg-white/[0.025]'],
+[class~='bg-white/[0.035]'],
+[class~='bg-white/[0.05]'],
+[class~='bg-white/[0.055]'],
+[class~='bg-white/[0.07]'],
+[class~='bg-white/[0.08]'],
+[class~='bg-white/5'] {
+  background: rgba(255, 255, 255, 0.62) !important;
+}
+
+[class~='text-slate-100'],
+[class~='text-slate-200'] {
+  color: var(--portfolio-text) !important;
+}
+[class~='text-slate-300'],
+[class~='text-slate-400'] {
+  color: var(--portfolio-soft) !important;
+}
+[class~='text-slate-500'],
+[class~='text-slate-600'] {
+  color: var(--portfolio-faint) !important;
+}
+[class~='text-emerald-50/80'],
+[class~='text-emerald-50/65'],
+[class~='text-emerald-50'],
+[class~='text-emerald-100/80'],
+[class~='text-emerald-100/70'],
+[class~='text-emerald-100/60'],
+[class~='text-emerald-100/55'],
+[class~='text-emerald-100/50'],
+[class~='text-emerald-100/45'],
+[class~='text-emerald-100/30'],
+[class~='text-emerald-200/60'] {
+  color: var(--portfolio-soft) !important;
+}
+
+[class~='text-[#d6bc79]'],
+[class~='text-[#f1dba3]'] {
+  color: var(--portfolio-blue) !important;
+}
+[class~='fill-[#d6bc79]'] {
+  fill: var(--portfolio-blue) !important;
+}
+[class~='bg-[#d6bc79]'] {
+  background: var(--portfolio-text) !important;
+  color: #fff !important;
+}
+[class~='bg-[#d6bc79]/15'],
+[class~='bg-[#d6bc79]/20'],
+[class~='bg-[#d6bc79]/[0.08]'],
+[class~='bg-[#d6bc79]/[0.07]'],
+[class~='bg-[#d6bc79]/[0.045]'] {
+  background: rgba(29, 78, 216, 0.07) !important;
+}
+[class~='border-[#d6bc79]'],
+[class~='border-[#d6bc79]/70'],
+[class~='border-[#d6bc79]/45'],
+[class~='border-[#d6bc79]/40'],
+[class~='border-[#d6bc79]/25'],
+[class~='border-[#d6bc79]/15'] {
+  border-color: rgba(29, 78, 216, 0.3) !important;
+}
+
+[class~='border-white/10'],
+[class~='border-white/25'],
+[class~='border-white/35'],
+[class~='border-white/[0.055]'],
+[class~='border-white/[0.025]'],
+[class~='border-white/[0.06]'],
+[class~='border-white/[0.07]'],
+[class~='border-white/[0.08]'],
+[class~='border-white/[0.1]'],
+[class~='border-slate-700'],
+[class~='border-slate-600'] {
+  border-color: var(--portfolio-border) !important;
+}
+[class~='border-white/80'],
+[class~='border-slate-300'] {
+  border-color: var(--portfolio-border-strong) !important;
+}
+
+[class~='focus-visible:ring-[#d6bc79]'],
+[class~='focus-visible:ring-emerald-400/20'] {
+  --tw-ring-color: rgba(29, 78, 216, 0.25) !important;
+}
+[class~='focus-visible:border-emerald-400/60'] {
+  border-color: rgba(29, 78, 216, 0.55) !important;
+}
+[class~='focus-visible:ring-offset-[#103e35]'],
+[class~='focus-visible:ring-offset-slate-900'] {
+  --tw-ring-offset-color: var(--portfolio-surface-strong) !important;
+}
+
+input,
+select {
+  color: var(--portfolio-text) !important;
+}
+input::placeholder {
+  color: var(--portfolio-faint) !important;
+}
+
+.card-picker {
+  background: var(--portfolio-surface-strong) !important;
+  border-color: var(--portfolio-border) !important;
+  color: var(--portfolio-text) !important;
+  box-shadow: 0 32px 100px rgba(36, 31, 24, 0.18) !important;
+}
+
 [data-slot='dialog-overlay'] {
-  background-color: rgb(2 6 23 / 0.7);
+  background-color: rgba(23, 23, 23, 0.28);
   backdrop-filter: blur(5px);
 }
