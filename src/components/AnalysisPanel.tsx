@@ -394,7 +394,7 @@ export function AnalysisPanel({
       </p>
       <p className="mt-auto flex items-center gap-2 pt-6 text-xs text-slate-500">
         <Spade aria-hidden="true" className="size-3.5" />
-        Study the math. Make the decision.
+        Equity, pot odds, and expected value.
       </p>
     </aside>
   );
