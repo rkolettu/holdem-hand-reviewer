@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type MouseEvent } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { PracticeMode } from './components/PracticeMode';
 import { useEquity } from './poker/useEquity';
@@ -591,6 +592,7 @@ export default function App() {
         onClose={() => setActiveSlot(null)}
         onSelect={selectCard}
       />
+      <Analytics />
     </div>
   );
 }
