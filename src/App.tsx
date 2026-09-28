@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { ChipDefs } from './components/Chips';
+import { Room } from './components/Room';
 import { Entry } from './components/Entry';
 import { Header, StepStatus, type Mode } from './components/Header';
 import { Practice } from './components/Practice';
@@ -127,6 +128,13 @@ export default function App() {
       <a className="skip-link" href="#main">
         Skip to the table
       </a>
+      <Room
+        review={
+          (view.mode === 'review' && phase === 'ready') ||
+          (view.mode === 'practice' && score.attempts > 0)
+        }
+        mode={view.mode}
+      />
       <ChipDefs />
       <div className="app" data-mode={view.mode}>
         <Header
