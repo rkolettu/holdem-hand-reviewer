@@ -1,4 +1,4 @@
-# Hold’em Decision Lab
+# FELT · Hold’em hand review
 
 A browser-based poker study tool for reviewing postflop decisions and practicing fold / call / raise spots with explicit expected-value assumptions.
 
@@ -29,6 +29,12 @@ Practice mode generates a random postflop spot with:
 - an explicit fold-to-raise assumption.
 
 Choose **Fold**, **Call**, or **Raise** before seeing the answer. The app then reveals the EV of all three actions, the best modeled action, your score, and the raise break-even point.
+
+## The table is the interface
+
+- **Cards are outcomes.** Tactile cards dealt from the dealer's deck; a deck tray picks cards (street-aware auto-advance, type `A` then `S` for A♠, arrow keys).
+- **Chips are quantities.** Pot, bet and stack stacks are sized from their amounts at one denomination (legend on the table). The analysis shows the final pot as 100 chips: your call chips vs the pot (the price), then the same chips divided by equity (the split). The chips that cross the table are the EV.
+- **Outs** (`src/poker/outs.ts`): every unseen next card is dealt and `calculateEquity` re-run against the full range. If your made hand is behind the range now, outs are the cards that lift you to ≥50% equity; if ahead, danger cards drop you below 50%. Probabilities use the engine's own weighting, and the weighted outcomes reproduce the street's equity exactly (tested).
 
 ## Opponent model
 
