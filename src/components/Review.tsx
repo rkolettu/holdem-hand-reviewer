@@ -32,7 +32,6 @@ import { ChipSplit } from './ChipSplit';
 import { DeckTray } from './DeckTray';
 import type { CardMotion } from './PlayingCard';
 import { RaiseTest } from './RaiseTest';
-import { Room } from './Room';
 import { Table } from './Table';
 import { VillainSeat } from './VillainSeat';
 
@@ -365,8 +364,7 @@ export function Review({
 
   return (
     <div className="review" data-ready={ready || undefined}>
-      <div className="review-table felt">
-        <Room review={ready} />
+      <div className="review-table">
         <Table
           hole={holeCards}
           board={communityCards}

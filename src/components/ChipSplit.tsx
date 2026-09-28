@@ -14,7 +14,6 @@ import {
 } from '../lib/chips';
 import { pct, signed } from '../lib/format';
 import { prefersReducedMotion } from '../lib/motion';
-import { Room } from './Room';
 import { ChipField, type PlacedChip, type StackShadow } from './Chips';
 
 type Stage = 'price' | 'split';
@@ -182,11 +181,10 @@ export function ChipSplit({
 
       <div
         ref={box}
-        className="split-stage felt"
+        className="split-stage"
         data-hop={move.hop % 2 ? 'a' : 'b'}
         data-stage={stage}
       >
-        <Room mode="panel" />
         <ChipField
           chips={chips}
           shadows={shadows}
