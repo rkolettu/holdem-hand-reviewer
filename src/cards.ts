@@ -23,28 +23,21 @@ export type ActiveSlot = {
   index: number;
   label: string;
 };
-export const suitStyle = {
-  Spades: {
-    symbol: '♠',
-    cardColor: 'text-slate-800',
-    labelColor: 'text-slate-300',
-  },
-  Hearts: {
-    symbol: '♥',
-    cardColor: 'text-red-600',
-    labelColor: 'text-red-400',
-  },
-  Diamonds: {
-    symbol: '♦',
-    cardColor: 'text-red-600',
-    labelColor: 'text-red-400',
-  },
-  Clubs: {
-    symbol: '♣',
-    cardColor: 'text-slate-800',
-    labelColor: 'text-slate-300',
-  },
+export const suitInfo = {
+  Spades: { symbol: '♠', tone: 'black', key: 's' },
+  Hearts: { symbol: '♥', tone: 'red', key: 'h' },
+  Diamonds: { symbol: '♦', tone: 'red', key: 'd' },
+  Clubs: { symbol: '♣', tone: 'black', key: 'c' },
 } as const;
 export function sameCard(a: Card | null, b: Card | null): boolean {
   return a !== null && b !== null && a.rank === b.rank && a.suit === b.suit;
+}
+export function cardName(card: Card) {
+  return `${card.rank} of ${card.suit}`;
+}
+export function cardShort(card: Card) {
+  return `${card.rank}${suitInfo[card.suit].symbol}`;
+}
+export function cardKey(card: Card) {
+  return `${card.rank}-${card.suit}`;
 }

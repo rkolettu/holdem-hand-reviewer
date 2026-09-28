@@ -2,18 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f4f1ea" />
+    <meta name="theme-color" content="#0a2a21" />
     <meta
       name="description"
-      content="Hold’em Decision Lab is a poker study tool for equity, pot odds, fold/call/raise EV, raise sizing, board-aware opponent ranges, and randomized practice spots."
+      content="FELT is a Texas Hold’em hand reviewer. Rebuild the hand on the table, then see the decision: equity, pot odds, outs, and fold / call / raise expected value."
     />
-    <title>Hold’em Decision Lab</title>
+    <title>FELT · Hold’em hand review</title>
+    <style>
+      /* Paint the felt before the app loads so the first frame is the table. */
+      html, body { background: #0a2a21; margin: 0; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script src="/ui-polish.js" defer></script>
   </body>
 </html>

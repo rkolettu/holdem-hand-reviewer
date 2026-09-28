@@ -25,8 +25,16 @@ afterEach(() => {
 });
 it('cancels obsolete work and never displays a stale result', async () => {
   vi.stubGlobal('Worker', ControlledWorker);
-  const first = {} as EquityInput,
-    second = {} as EquityInput;
+  // Structurally valid inputs: the hook resolves continuation ranges from the
+  // cards before it starts the worker.
+  const blank = () =>
+    ({
+      holeCards: [],
+      communityCards: [],
+      opponentCombos: [],
+    }) as unknown as EquityInput;
+  const first = blank(),
+    second = blank();
   const { result, rerender } = renderHook(({ input }) => useEquity(input), {
     initialProps: { input: first as EquityInput | null },
   });
