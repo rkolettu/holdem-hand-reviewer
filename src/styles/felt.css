@@ -3,9 +3,8 @@
    base baize → lamp pool → fibre grain → brushed nap → mottling → vignette. */
 
 .room {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 0;
   overflow: hidden;
   pointer-events: none;
   background:
@@ -35,19 +34,13 @@
   --lamp-y: 38%;
 }
 
-@media (min-width: 1100px) {
-  .room[data-mode='review'],
-  .room[data-mode='practice'] {
-    --lamp-x: 32%;
-    --lamp-y: 52%;
-  }
+/* The small chip panel: soft, even light and no pointer glint. */
+.room[data-mode='panel'] {
+  --lamp-y: 30%;
 }
 
-@media (max-width: 1099px) {
-  .room[data-mode='review'],
-  .room[data-mode='practice'] {
-    --lamp-y: 26%;
-  }
+.room[data-mode='panel'] .room-vignette {
+  opacity: 0.6;
 }
 
 /* Overhead lamp: a warm pool of light that follows the composition. */
@@ -88,14 +81,12 @@
 
 /* Light falls off toward the edges of the room. */
 .room-vignette {
-  background:
-    radial-gradient(
-      ellipse 80% 75% at 50% 42%,
-      transparent 52%,
-      rgba(0, 8, 5, 0.42) 88%,
-      rgba(0, 6, 4, 0.7) 100%
-    ),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 16%);
+  background: radial-gradient(
+    ellipse 80% 75% at 50% 42%,
+    transparent 52%,
+    rgba(0, 8, 5, 0.42) 88%,
+    rgba(0, 6, 4, 0.7) 100%
+  );
 }
 
 /* Review: the room dims around the hand when the analysis is ready. */

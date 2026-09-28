@@ -3,8 +3,39 @@
    but lives on a lit green table instead of warm paper. Cards are outcomes,
    chips are quantities, the felt is the interface. */
 
+/* The family palette (portfolio, EDGAR, take-home calculator, Signal Dash):
+   warm paper, ink, one blue. The felt keeps its own green and is scoped to
+   `.felt` surfaces, where the same semantic tokens take their felt values. */
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+
+  --page: #f4f1ea;
+  --surface: #fbfaf7;
+  --surface-2: #efebe4;
+  --surface-raised: #ffffff;
+  --ink: #171717;
+
+  --fg-strong: #171717;
+  --fg: #171717;
+  --fg-soft: #5f5c56;
+  --fg-faint: #716e68;
+  --fg-ghost: rgba(23, 23, 23, 0.3);
+  --line: rgba(23, 23, 23, 0.12);
+  --line-strong: rgba(23, 23, 23, 0.18);
+  --accent: #1d4ed8;
+  --accent-soft: #dce6fb;
+  --accent-line: rgba(29, 78, 216, 0.45);
+  --accent-glow: rgba(29, 78, 216, 0.14);
+  --neg: #a43e39;
+  --field-line: rgba(23, 23, 23, 0.22);
+
+  --shadow-soft:
+    0 1px 2px rgba(23, 23, 23, 0.04), 0 6px 18px rgba(23, 23, 23, 0.035);
+  --shadow-raised:
+    0 2px 4px rgba(23, 23, 23, 0.05), 0 12px 28px rgba(23, 23, 23, 0.07);
+  --shadow-popover:
+    0 10px 32px rgba(23, 23, 23, 0.14), 0 2px 8px rgba(23, 23, 23, 0.07);
 
   /* Felt: a deep, slightly blue-green baize lit from above. */
   --felt-950: #03120d;
@@ -15,34 +46,14 @@
   --felt-600: #133f32;
   --felt-500: #194c3d;
   --felt-400: #215b49;
-  --felt-lamp: #2f735c;
 
-  /* Charcoal: navigation, controls, analytical surfaces. */
-  --ink-950: #0a0b0b;
+  /* Charcoal: the villain plaque and card backs. */
   --ink-900: #0f1110;
   --ink-850: #141615;
   --ink-800: #1a1c1b;
   --ink-700: #232624;
-  --ink-600: #2e3230;
-  --ink-line: rgba(241, 236, 226, 0.09);
 
-  /* Gold: selected states and small emphasis only. */
-  --gold: #c9a96c;
-  --gold-soft: #ddc596;
-  --gold-deep: #94773f;
-  --gold-line: rgba(201, 169, 108, 0.5);
-  --gold-glow: rgba(201, 169, 108, 0.16);
-
-  /* Off-white: card stock and primary type. */
   --paper: #f4efe5;
-  --paper-2: #ebe4d6;
-  --on-felt: #f1ece2;
-  --on-felt-soft: rgba(241, 236, 226, 0.76);
-  --on-felt-faint: rgba(241, 236, 226, 0.6);
-  --on-felt-ghost: rgba(241, 236, 226, 0.34);
-  --line-felt: rgba(241, 236, 226, 0.1);
-  --line-felt-strong: rgba(241, 236, 226, 0.2);
-
   --suit-red: #b3262c;
   --suit-black: #17191a;
 
@@ -57,7 +68,37 @@
     'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --header-h: 60px;
-  --gutter: clamp(1rem, 3.2vw, 2.75rem);
+  --gutter: max(1.25rem, calc((100vw - 1320px) / 2));
+}
+
+/* On the felt the same tokens read light on green. */
+.felt {
+  --fg-strong: #f4efe5;
+  --fg: #f1ece2;
+  --fg-soft: rgba(241, 236, 226, 0.76);
+  --fg-faint: rgba(241, 236, 226, 0.62);
+  --fg-ghost: rgba(241, 236, 226, 0.34);
+  --line: rgba(241, 236, 226, 0.1);
+  --line-strong: rgba(241, 236, 226, 0.2);
+  --accent: #a9c0ff;
+  --accent-line: rgba(169, 192, 255, 0.55);
+  --accent-glow: rgba(169, 192, 255, 0.18);
+  --neg: #eeb4a4;
+  --field-line: rgba(241, 236, 226, 0.26);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--felt-800);
+  color: var(--fg);
+  box-shadow:
+    0 1px 2px rgba(23, 23, 23, 0.08),
+    0 18px 40px rgba(36, 31, 24, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.felt > .room {
+  z-index: -1;
 }
 
 * {
@@ -65,7 +106,7 @@
 }
 
 html {
-  background: var(--felt-850);
+  background: var(--page);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -74,11 +115,17 @@ body {
   min-width: 320px;
   min-height: 100dvh;
   overflow-x: clip;
-  background: var(--felt-850);
-  color: var(--on-felt);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(29, 78, 216, 0.055),
+      transparent 32%
+    ),
+    var(--page);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv11', 'ss01';
@@ -101,12 +148,11 @@ button:disabled {
 }
 
 ::selection {
-  background: rgba(201, 169, 108, 0.32);
-  color: var(--paper);
+  background: rgba(29, 78, 216, 0.16);
 }
 
 :focus-visible {
-  outline: 2px solid var(--gold-soft);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -131,19 +177,19 @@ button:disabled {
   font-feature-settings: 'tnum', 'cv11', 'ss01';
 }
 
-/* Quiet uppercase labels: THE HAND, THE POT, EQUITY. */
+/* Quiet uppercase labels, as on the portfolio and Signal Dash. */
 .kicker {
   margin: 0;
-  color: var(--on-felt-faint);
-  font-size: 0.7rem;
-  font-weight: 650;
-  letter-spacing: 0.14em;
+  color: var(--fg-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
 .kicker-gold {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .skip-link {
@@ -153,8 +199,8 @@ button:disabled {
   z-index: 200;
   padding: 0.6rem 0.9rem;
   border-radius: 10px;
-  background: var(--paper);
-  color: var(--ink-900);
+  background: var(--ink);
+  color: #fff;
   font-size: 0.88rem;
   font-weight: 650;
   text-decoration: none;
@@ -165,69 +211,73 @@ button:disabled {
   transform: none;
 }
 
-/* ---------- Buttons: charcoal objects with a physical press ---------- */
+/* ---------- Buttons (portfolio) ---------- */
 
 .btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
-  min-height: 46px;
-  padding: 0.7rem 1.15rem;
-  border: 0;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  font-weight: 620;
-  letter-spacing: -0.005em;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 650;
   line-height: 1.1;
   white-space: nowrap;
   text-decoration: none;
   transition:
-    transform 160ms var(--ease-out),
-    box-shadow 200ms var(--ease-out),
-    background-color 200ms ease,
-    color 200ms ease;
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(1px) scale(0.99);
+  transform: translateY(1px);
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #202321 0%, #121413 100%);
-  color: var(--paper);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 1px 0 rgba(0, 0, 0, 0.5),
-    0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 0 1px var(--gold-line),
-    0 1px 0 rgba(0, 0, 0, 0.5),
-    0 14px 30px -12px rgba(0, 0, 0, 0.75);
-}
-
-.btn-primary:active:not(:disabled) {
-  box-shadow:
-    inset 0 2px 5px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px var(--gold-line);
+  background: #000;
 }
 
 .btn-quiet {
   background: transparent;
-  color: var(--on-felt-soft);
-  box-shadow: inset 0 0 0 1px var(--line-felt-strong);
+  border-color: var(--line-strong);
+  color: var(--fg);
 }
 
 .btn-quiet:hover:not(:disabled) {
-  color: var(--on-felt);
-  background: rgba(241, 236, 226, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(241, 236, 226, 0.32);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.felt .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--ink);
+}
+
+.felt .btn-primary:hover:not(:disabled) {
+  background: var(--page);
+}
+
+.felt .btn-quiet {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.felt .btn-quiet:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-arrow {
@@ -243,8 +293,8 @@ button:disabled {
   padding: 0.25rem 0;
   border: 0;
   background: none;
-  color: var(--on-felt-soft);
-  font-size: 0.8rem;
+  color: var(--fg-soft);
+  font-size: 0.82rem;
   font-weight: 560;
   background-image: linear-gradient(currentColor, currentColor);
   background-position: 0 100%;
@@ -256,7 +306,7 @@ button:disabled {
 }
 
 .text-btn:hover {
-  color: var(--on-felt);
+  color: var(--fg);
   background-size: 100% 1px;
 }
 
