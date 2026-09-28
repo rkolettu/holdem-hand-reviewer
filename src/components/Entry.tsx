@@ -1,4 +1,5 @@
 import { PlayingCard } from './PlayingCard';
+import { Room } from './Room';
 import { OPENING_HAND } from './Review';
 
 // The opening is the table itself: two cards are dealt, the question forms
@@ -11,7 +12,8 @@ export function Entry({
   onPractice: () => void;
 }) {
   return (
-    <main className="entry" id="main">
+    <main className="entry felt" id="main">
+      <Room mode="entry" />
       <div className="entry-stage" data-table>
         <span className="entry-dealer" data-dealer aria-hidden="true" />
         <div className="entry-hand">

@@ -1,12 +1,22 @@
 import { useEffect, useRef } from 'react';
 
-// The fixed felt surface. `review` dims the room around the hand.
-export function Room({ review, mode }: { review: boolean; mode: string }) {
+// The felt cloth: layered under a `.felt` card. `review` dims the cloth
+// around the hand once the analysis is ready.
+export function Room({
+  review = false,
+  mode = 'table',
+}: {
+  review?: boolean;
+  mode?: 'entry' | 'table' | 'panel';
+}) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
+    const host = el?.parentElement;
     if (
       !el ||
+      !host ||
+      mode === 'panel' ||
       !window.matchMedia?.('(hover: hover) and (pointer: fine)').matches
     )
       return;
@@ -14,17 +24,18 @@ export function Room({ review, mode }: { review: boolean; mode: string }) {
     const move = (event: PointerEvent) => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        el.style.setProperty('--px', `${event.clientX}px`);
-        el.style.setProperty('--py', `${event.clientY}px`);
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty('--px', `${event.clientX - rect.left}px`);
+        el.style.setProperty('--py', `${event.clientY - rect.top}px`);
         el.dataset.glint = 'true';
       });
     };
-    window.addEventListener('pointermove', move, { passive: true });
+    host.addEventListener('pointermove', move, { passive: true });
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener('pointermove', move);
+      host.removeEventListener('pointermove', move);
     };
-  }, []);
+  }, [mode]);
   return (
     <div
       ref={ref}

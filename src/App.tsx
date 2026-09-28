@@ -6,7 +6,6 @@ import { Entry } from './components/Entry';
 import { Header, StepStatus, type Mode } from './components/Header';
 import { Practice } from './components/Practice';
 import { Review, type ReviewPhase } from './components/Review';
-import { Room } from './components/Room';
 import { prefersReducedMotion } from './lib/motion';
 
 type View = {
@@ -128,13 +127,6 @@ export default function App() {
       <a className="skip-link" href="#main">
         Skip to the table
       </a>
-      <Room
-        review={
-          (view.mode === 'review' && phase === 'ready') ||
-          (view.mode === 'practice' && score.attempts > 0)
-        }
-        mode={view.mode}
-      />
       <ChipDefs />
       <div className="app" data-mode={view.mode}>
         <Header

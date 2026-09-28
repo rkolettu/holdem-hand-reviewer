@@ -29,6 +29,7 @@ import {
 import { AmountField } from './AmountField';
 import { ChipSplit } from './ChipSplit';
 import type { CardMotion } from './PlayingCard';
+import { Room } from './Room';
 import { Table } from './Table';
 import { VillainSeat } from './VillainSeat';
 
@@ -187,7 +188,8 @@ export function Practice({
 
   return (
     <div className="review practice" data-ready={revealed || undefined}>
-      <div className="review-table">
+      <div className="review-table felt">
+        <Room review={revealed} />
         <Table
           key={hand}
           hole={scenario.holeCards}
