@@ -1,8 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import './styles.css';
-import './polish.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/ibm-plex-mono/latin-400.css';
+import '@fontsource/ibm-plex-mono/latin-500.css';
+import './styles/base.css';
+import './styles/felt.css';
+import './styles/card.css';
+import './styles/chips.css';
+import './styles/app.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
